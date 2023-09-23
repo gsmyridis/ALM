@@ -32,7 +32,7 @@ def load_portfolio():
 def load_market():
     
     """
-    :col yield: yield curve type (for example, yields are from the bond market or the interbank market)
+    :col type: yield curve type (for example, yields are from the bond market or the interbank market)
                 the type column has to be the same as in portfolio to connect the two datasets
     :col date: maturity of the current rate
     :col rate: value of the rate in basis points
@@ -42,6 +42,7 @@ def load_market():
     market = pd.read_csv('data/market.csv')
     # Turn date columns to DateTime type
     market['date'] = pd.to_datetime(market['date'])
+    market['rate'] = market['rate'].div(100)
     return market
 
 
