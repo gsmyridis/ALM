@@ -55,10 +55,7 @@ def set_now():
 
 def time_difference_years(date, from_date):
     """ Calculates time defference of date from from_date in years """
-    time_difference_seconds = (date-from_date).total_seconds()
-    seconds_in_a_year = 60 * 60 * 24 * 365.25
-    time_difference_years = time_difference_seconds / seconds_in_a_year
-    return time_difference_years
+    return (date-from_date).days / 365.25
 
 
 def time_difference_years_from_list(dates, from_date):
@@ -88,5 +85,6 @@ def datetime_range(start_date, end_date, length):
     time_difference = end_date - start_date
     interval = time_difference / (length - 1)
     date_range = [start_date + i * interval for i in range(length)]
+    date_range = [datetime(d.year, d.month, d.day) for d in date_range]
     return date_range
 
