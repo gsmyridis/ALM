@@ -1,4 +1,3 @@
-import datetime
 import utils
 from nelson_siegel_svensson.calibrate import calibrate_nss_ols
 
@@ -42,7 +41,7 @@ class YieldCurve:
         
     def _plot_spot_yields(self, times, rates):
         """ Plots the yields and the Nelson-Siegel-Svensson model vs dates of maturity """ 
-        if isinstance(times[0], datetime.datetime):
+        if isinstance(times[0], datetime):
             times_type = 'dates'
             times_scale = ''
             continuous_dates = utils.datetime_range(np.min(times), np.max(times), 100)
@@ -80,7 +79,7 @@ class YieldCurve:
         if plot:
             self._plot_forward_yields(dates, forwards)
             
-        return forwards
+        return pd.DataFrame({"date": dates, "rate": forwards})
     
     
     def _plot_forward_yields(self, dates, rates):
@@ -94,3 +93,30 @@ class YieldCurve:
         plt.legend()
         plt.show()
         
+        
+    def get_floating_yields(self, repayment_dates, repricing_dates, plot=False):
+        """"""
+        repayment_dates = pd.DataFrame({'date': repayment_dates})
+        forward_yields_og = self.get_forward_yields(repricing_dates, plot=False)
+        forward_yields = pd.merge(repayment_dates, forward_yields_og, on='date', how='outer')
+        spot_yields = self.get_spot_yields(repricing_dates, plot=False)
+        forward_yields.at[0,'rate'] = spot_yields.at[0,'rate']
+        forward_yields = forward_yields.sort_values(by='date')
+        forward_yields['rate'].fillna(method='ffill', inplace=True)
+        
+        if plot:
+            self._plot_floating_yields(forward_yields['date'], forward_yields['rate'])
+        
+    
+        return forward_yields
+    
+    def _plot_floating_yields(self, dates, rates):
+        """ Plots floating yields """
+        plt.scatter(dates, rates, label='Floating Yields',
+                    marker='o', color='black', s=10)
+        plt.plot(dates, rates, color='gray', linestyle='-')
+        plt.title('Floating Yields vs Maturity Dates')
+        plt.xlabel('Marurity date')
+        plt.ylabel('Yield in basis points')
+        plt.legend()
+        plt.show()
