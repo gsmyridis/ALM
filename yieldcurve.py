@@ -1,28 +1,29 @@
+import numpy as np
+import pandas as pd
+from datetime import datetime
+import matplotlib.pyplot as plt
+
 import utils
 from nelson_siegel_svensson.calibrate import calibrate_nss_ols
 
 
+
 class YieldCurve:
     
-    
-    def __init__(self, curve_type):
+    def __init__(self, curve_type, today):
         """ Initialize parameters """
         self.curve_type = curve_type
         self._data = None
         self._curve = None
         self._status = None
-        self._now = utils.set_now()
+        self._today = today
         
         
     def fit(self, market_data, plot=False):
-        """ 
-        Fit Nelson-Siegel-Svensson model to the observed yields
-        :param market_data:
-        :param plot:
-        """
+        """ Fit Nelson-Siegel-Svensson model to the observed yields on the market """
         self._data = market_data[market_data['type'] == self.curve_type].copy()
         # Calculate time difference in years between now and expiry
-        self._data['maturity'] = self._data['date'].apply(lambda date: utils.time_difference_years(date, self._now))
+        self._data['maturity'] = self._data['date'].apply(lambda date: utils.time_difference_years(date, self._today))
         # Fit the Nelson-Siegel-Svensson model to our yield data
         self._curve, self._status = calibrate_nss_ols(np.ravel(self._data['maturity']), np.ravel(self._data['rate']))
 
@@ -32,7 +33,7 @@ class YieldCurve:
         
     def get_spot_yields(self, dates, plot=False):
         """ Gets the spot yield for dates based on Nelson-Siegel-Svensson model """
-        maturities = utils.time_difference_years_from_list(dates, self._now)
+        maturities = utils.time_difference_years_from_list(dates, self._today)
         yields = self._curve(maturities)
         if plot:
             self._plot_spot_yields(dates, yields)
@@ -44,8 +45,8 @@ class YieldCurve:
         if isinstance(times[0], datetime):
             times_type = 'dates'
             times_scale = ''
-            continuous_dates = utils.datetime_range(np.min(times), np.max(times), 100)
-            continuous_maturities = utils.time_difference_years_from_list(continuous_dates, self._now)
+            continuous_dates = utils.date_range(np.min(times), np.max(times), 100)
+            continuous_maturities = utils.time_difference_years_from_list(continuous_dates, self._today)
             continuous_times = continuous_dates
         elif isinstance(times[0], float):
             times_type = 'times'
@@ -69,7 +70,7 @@ class YieldCurve:
         
     def get_forward_yields(self, dates, plot=False):
         """ Gets forward yields """
-        maturities = utils.time_difference_years_from_list(dates, self._now)
+        maturities = utils.time_difference_years_from_list(dates, self._today)
         rates = self._curve(maturities)
         rates = np.divide(rates, 10000)
         interests = np.power(np.add(1, rates), maturities)
@@ -95,20 +96,24 @@ class YieldCurve:
         
         
     def get_floating_yields(self, repayment_dates, repricing_dates, plot=False):
-        """"""
-        repayment_dates = pd.DataFrame({'date': repayment_dates})
+        """ 
+        Gets variable (floating) yields for assets (loans)
+        on repayment_dates when repriced on repricing dates
+        """
+        repayment_dates_df = pd.DataFrame({'date': repayment_dates})
         forward_yields_og = self.get_forward_yields(repricing_dates, plot=False)
-        forward_yields = pd.merge(repayment_dates, forward_yields_og, on='date', how='outer')
+        forward_yields = pd.merge(repayment_dates_df, forward_yields_og, on='date', how='outer')
         spot_yields = self.get_spot_yields(repricing_dates, plot=False)
         forward_yields.at[0,'rate'] = spot_yields.at[0,'rate']
         forward_yields = forward_yields.sort_values(by='date')
         forward_yields['rate'].fillna(method='ffill', inplace=True)
+        forward_yields = forward_yields[forward_yields['date'].isin(repayment_dates)]
         
         if plot:
             self._plot_floating_yields(forward_yields['date'], forward_yields['rate'])
-        
     
         return forward_yields
+    
     
     def _plot_floating_yields(self, dates, rates):
         """ Plots floating yields """
@@ -120,3 +125,4 @@ class YieldCurve:
         plt.ylabel('Yield in basis points')
         plt.legend()
         plt.show()
+        
