@@ -89,7 +89,12 @@ def asset_cashflow(portfolio, market, id, today):
     
     cashflows = amortization_schedule(rate=monthly_rate, maturity=maturity,
                                       volume=volume, payment_type=repayment)
-    cashflows.insert(0, 'date', payment_dates)
+    info = {'id': [id] * cashflows.shape[0],
+            'account': [portfolio['account'][id]] * cashflows.shape[0],
+            'date': payment_dates} 
+    cashflows = pd.concat([pd.DataFrame(info), cashflows], axis=1)
+    cashflows['date'] = cashflows['date'].dt.to_pydatetime()
+#     cashflows.insert(cashflows.shape[1], 'yieldcurve', [portfolio['yieldcurve'][id]] * cashflows.shape[0])
     
     return cashflows
 
@@ -102,4 +107,23 @@ def portfolio_cashflow(portfolio, market, today):
         port_cashflow = pd.concat([port_cashflow, cashflow], ignore_index=True)
     return port_cashflow
         
-                       
+
+def get_present_values(cashflows, market, today):
+    """ Get present values for future cashflows """
+    table = cashflows.copy()[['id','account','date','cashflow']]
+    payment_dates = [date.to_pydatetime() for date in table['date']]
+    # GET YIELDS ON PAYMENT DATES
+    yieldcurve = YieldCurve(curve_type='EUR01', today=today)
+    yieldcurve.fit(market)
+    spot_yields = yieldcurve.get_spot_yields(payment_dates)['rate']
+    # CALCULATE TIME FROM TODAY TO PAYMENT IN YEARS
+    dt = utils.time_difference_years_from_list(payment_dates, today)
+    # DISCOUNT THE CASHFLOW ON GIVEN DATE TO FIND ITS PRESENT VALUE
+    df = (1 + spot_yields/10000)**(-dt)
+    table['present_values'] = table['cashflow'] * df
+    
+    table = table[['id', 'account', 'present_values']]
+    table = table.groupby(['id', 'account']).sum().reset_index().set_index('id')
+    table.insert(1, 'date', np.full(table.shape[0],  today))
+ 
+    return table
