@@ -1,10 +1,11 @@
+import warnings
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 
 def load_portfolio():
-    
     """
     :col id: identification number (the number ofthe row)
     :col account: account type in short
@@ -23,13 +24,15 @@ def load_portfolio():
     :col yieldcurve: identifier of the interest rate curve
     """
     portfolio = pd.read_csv('data/portfolio.csv')
+    portfolio.set_index('id', inplace=True)
     portfolio['issue'] = pd.to_datetime(portfolio['issue'])
     portfolio['maturity'] = pd.to_datetime(portfolio['maturity'])
+    portfolio['reprice_freq'] = portfolio['reprice_freq'].fillna(1).astype(int)
+
     return portfolio
 
 
 def load_market():
-    
     """
     :col type: yield curve type (for example, yields are from the bond market or the interbank market)
                 the type column has to be the same as in portfolio to connect the two datasets
@@ -48,9 +51,13 @@ def load_data():
     return load_portfolio(), load_market()
 
 
-def set_now():
-    """Sets the now date time 30/09/2014"""
-    return datetime(2014, 9, 30)
+def set_today(date=datetime(2014,9,30)):
+    """ Set today's date """
+    if not isinstance(date, (datetime, str)):
+        raise TypeError("date can be either datetime or a string with the format %Y-%m-%d")
+    if isinstance(date, str):
+        date = datetime.strptime(date, "%Y-%m-%d")
+    return date
 
 
 def time_difference_years(date, from_date):
@@ -63,28 +70,83 @@ def time_difference_years_from_list(dates, from_date):
     vectorized_time_difference_years = np.vectorize(time_difference_years, excluded=['from_date'])
     time_differences = vectorized_time_difference_years(dates, from_date=from_date)
     return time_differences
-    
-    
-def datetime_range(start_date, end_date, length):
+
+ 
+def date_range(start=None, end=None, length=None, step=None):
     """ Returns a range of #length datetimes starting from start_date and ending at end_date """
-    # Check the type of start_date
-    if isinstance(start_date, str):
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-    elif isinstance(start_date, datetime):
+    
+    # CHECK THAT NOT ALL PARAMETER ARE NONE
+    if (start is None) and (end is None) and (length is None) and (step is None):
+        raise ValueError("All parameters are None")
+    # CHECK THAT NOT ALL PARAMETERS ARE PROVIDED
+    elif (start is not None) and (end is not None) and (length is not None) and (step is not None):
+        raise ValueError("You cannot provide all parameters")
+        
+    # CHECK IF start HAS PROPER TYPE
+    if isinstance(start, str):
+        start = datetime.strptime(start, '%Y-%m-%d')
+    elif isinstance(start, datetime) or (start is None):
         pass
     else:
-        raise TypeError("start_date can be either a string with the format %Y-%m-%d or datetime.datetime")
-    # Check the type of end_date
-    if isinstance(end_date, str):
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
-    elif isinstance(end_date, datetime):
+        raise TypeError("start can be either a string with the format %Y-%m-%d or datetime, or None")
+    
+    # CHECK IF end HAS PROPER TYPE
+    if isinstance(end, str):
+        end = datetime.strptime(end, '%Y-%m-%d')
+    elif isinstance(end, datetime) or (end is None):
         pass
     else:
-        raise TypeError("end_date can be either a string with the format %Y-%m-%d or datetime.datetime")
-                      
-    time_difference = end_date - start_date
-    interval = time_difference / (length - 1)
-    date_range = [start_date + i * interval for i in range(length)]
+        raise TypeError("end can be either a string with the format %Y-%m-%d or datetime, or None")
+        
+    # CHECK THAT EITHER length OR step IS PROVIDED
+    if (length is None) and (step is None):
+        raise ValueError("You have to provide either length or step in months")
+    elif (length is not None) and not isinstance(length, int):
+        raise TypeError("Integer length must be provided")
+    elif (step is not None) and not isinstance(step, int):
+        raise TypeError("Integer step must be provided")
+    
+    # START - END - LENGTH
+    if (start is not None) and (end is not None) and (length is not None):
+        time_difference = end - start
+        interval = time_difference / (length - 1)
+        if start < end:
+            date_range = [start + i * interval for i in range(length)]
+        else:
+            date_range = [start - i * interval for i in range(length)]
+    
+    # START - LENGTH - STEP
+    elif (start is not None) and (end is None) and (length is not None) and (step is not None):
+        date_range = []
+        current_date = start
+        for _ in range(length):
+            date_range.append(current_date)
+            current_date += relativedelta(months=step)
+            
+    # END - LENGTH - STEP
+    elif (end is not None) and (length is not None) and (step is not None) and (start is None):
+        date_range = []
+        current_date = end
+        for _ in range(length):
+            date_range.append(current_date)
+            current_date -= relativedelta(months=step)
+        
+    # START - END - STEP
+    elif (start is not None) and (end is not None) and (step is not None):
+        date_range = []
+        current_date = start
+        if start < end:
+            while current_date <= end:
+                date_range.append(current_date)
+                current_date += relativedelta(months=step)
+        else:
+            while current_date >= end:
+                date_range.append(current_date)
+                current_date -= relativedelta(months=step)
+    
+    else:
+        raise ValueError("""There are only four valid combinations of parameters (start, end, length),
+                         (start, length, step), (end, length, step) or (start, end, step)""")
+    
     date_range = [datetime(d.year, d.month, d.day) for d in date_range]
     return date_range
-
