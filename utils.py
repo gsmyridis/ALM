@@ -62,6 +62,24 @@ def set_today(date=datetime(2014,9,30)):
 
 def time_difference_years(date, from_date):
     """ Calculates time defference of date from from_date in years """
+    if isinstance(date, str):
+        date = datetime.strptime(date, "%Y-%m-%d")
+    elif isinstance(date, pd._libs.tslibs.timestamps.Timestamp):
+        date = date.to_pydatetime()
+    elif isinstance(date, datetime):
+        pass
+    else:
+        raise ValueError(f"""Dates have to be either strings or datetimes. Instead, it is {type(date)}""")
+        
+    if isinstance(from_date, str):
+        from_date = datetime.strptime(from_date, "%Y-%m-%d")
+    elif isinstance(from_date, pd._libs.tslibs.timestamps.Timestamp):
+        from_date = from_date.to_pydatetime()
+    elif isinstance(from_date, datetime):
+        pass
+    else:
+        raise ValueError(f"""Dates have to be either strings or datetimes. Instead, it is {type(from_date)}""")
+        
     return (date-from_date).days / 365.25
 
 
@@ -85,6 +103,8 @@ def date_range(start=None, end=None, length=None, step=None):
     # CHECK IF start HAS PROPER TYPE
     if isinstance(start, str):
         start = datetime.strptime(start, '%Y-%m-%d')
+    elif isinstance(start, pd._libs.tslibs.timestamps.Timestamp):
+        start = start.to_pydatetime()
     elif isinstance(start, datetime) or (start is None):
         pass
     else:
@@ -93,6 +113,8 @@ def date_range(start=None, end=None, length=None, step=None):
     # CHECK IF end HAS PROPER TYPE
     if isinstance(end, str):
         end = datetime.strptime(end, '%Y-%m-%d')
+    elif isinstance(end, pd._libs.tslibs.timestamps.Timestamp):
+        start = end.to_pydatetime()
     elif isinstance(end, datetime) or (end is None):
         pass
     else:
