@@ -60,33 +60,46 @@ def set_today(date=datetime(2014,9,30)):
     return date
 
 
-def time_difference_years(date, from_date):
+def time_difference(date, from_date, unit):
     """ Calculates time defference of date from from_date in years """
+    # CHECK IF date TYPE IS PROPER
     if isinstance(date, str):
         date = datetime.strptime(date, "%Y-%m-%d")
-    elif isinstance(date, pd._libs.tslibs.timestamps.Timestamp):
-        date = date.to_pydatetime()
     elif isinstance(date, datetime):
         pass
     else:
         raise ValueError(f"""Dates have to be either strings or datetimes. Instead, it is {type(date)}""")
-        
+    # CHECK IF from_date TYPE IS PROPER  
     if isinstance(from_date, str):
         from_date = datetime.strptime(from_date, "%Y-%m-%d")
-    elif isinstance(from_date, pd._libs.tslibs.timestamps.Timestamp):
-        from_date = from_date.to_pydatetime()
     elif isinstance(from_date, datetime):
         pass
     else:
         raise ValueError(f"""Dates have to be either strings or datetimes. Instead, it is {type(from_date)}""")
-        
-    return (date-from_date).days / 365.25
+    # CHECK IF unit TYPE IS PROPER
+    if unit not in ['years', 'days']:
+        raise ValueError("unit of time can be either 'years' or 'days'")
+    
+    # CALCULATE TIME DIFFERENCE
+    time_diff = (date-from_date).days
+    if unit == 'years':
+        time_diff /= 365.25
+ 
+    return time_diff
 
 
-def time_difference_years_from_list(dates, from_date):
+def time_difference_from_list(dates, from_date, unit):
     """ Calculated time differences in years for list of dates """
-    vectorized_time_difference_years = np.vectorize(time_difference_years, excluded=['from_date'])
-    time_differences = vectorized_time_difference_years(dates, from_date=from_date)
+    # CHECK IF TYPE OF dates IS PROPER
+    if isinstance(dates, pd.Series):
+        dates = [pd.to_datetime(d).to_pydatetime() for d in np.ravel(dates)]
+    elif isinstance(dates, list):
+        pass
+    else:
+        raise TypeError("dates can be either a list or pandas.Series of datetimes")
+    # CALCULATE TIME DIFFERENCES
+    vectorized_time_difference = np.vectorize(time_difference, excluded=['from_date', 'unit'])
+    time_differences = vectorized_time_difference(dates, from_date=from_date, unit=unit)
     return time_differences
 
  
