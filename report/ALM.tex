@@ -1,0 +1,230 @@
+\documentclass[11pt]{report}
+\usepackage{amsmath}
+
+\begin{document}
+
+
+%\chapter{Asset Liability Management (ALM)}
+%\section{}
+%
+%This chapter introduces the usage of R for commercial bank \textbf{asset and liability management (ALM)} purposes. The ALM function in a bank is traditionally associated with interest rate risk and liquidity risk management of banking book positions. Both of the interest rate positioning and liquidity risk management require the modeling of banking products. Nowadays, professional ALM units use complex \textbf{Enterprise Risk Management (ERM)} frameworks, which are able to incorporate the management of all risk types and provide an adequate tool for ALM to steer the balance sheet. Our general objective is to set up a simplified framework of ALM to illustrate the use of R for certain ALM tasks. These tasks are based on the interest rate and liquidity risk management and the modeling of non-maturing accounts.
+%
+%
+%This chapter is structured as follows. We start with the data-preparation process of
+%ALM analysis. The process of planning and measurement needs special information
+%about the banking book, market conditions, and the business strategy. This part
+%establishes a data-management tool that consists of the major input datasets, and
+%extracts data into the form that we use in the rest of this chapter.
+%
+%
+%Next, we will be dealing with the measurement of the interest rate risk. There are
+%two common approaches in the banking industry to quantify interest rate risk in
+%the banking book. Simpler techniques use repricing gap table analysis to manage
+%the interest rate risk exposure and calculate parallel yield curve shocks to forecast
+%the net \textbf{interest income (NII) }and calculate the \textbf{market value of equity (MVoE)}.
+%More advanced methods use dynamic simulation of balance sheets and stochastic
+%simulation of interest rate development. Choosing which tool to use depends on the
+%targets and the balance sheet structure. 
+%
+%
+%For example, a savings bank (with client term deposits on the liability side and fix
+%bond investments on the asset side) focuses on its market value of equity risk, while
+%a corporate bank (with floating interest position) concentrates on the net interest
+%income risk. We illustrate how to efficiently provide a repricing gap table and net
+%interest income forecasts with Python.
+%
+%In the last section of this chapter, we will concentrate on the modeling of non-maturing
+%products. Client products can be classified by their maturity structure and interest
+%rate behavior. Examples of typical non-maturing liability products are on-demand
+%deposits and savings accounts without any notice period of withdrawal. The clients
+%can withdraw their money at any time, while the bank has the right to modify the
+%offered interest rate. On the asset side, overdrafts and credit cards show quite similar
+%characteristics. The complex models of non-maturing products make the work of ALM
+%quite challenging. Practically, the modeling of non-maturing products means
+%the mapping of the cash-flow profiles, estimating the interest rate elasticity of the
+%demand, and analyzing the liquidity-related costs in the internal funds transfer
+%pricing (FTP) system. Here, we demonstrate how to measure the interest sensitivity
+%of the non-maturing deposits.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\chapter{Introduction}
+
+
+\section{Background}
+
+Asset and Liability Management (ALM) is a mechanism to address the risks faced by a
+bank that arise as a result of a mismatch between assets and liabilities due to liquidity and changes in interest rates. One of the central issues of ALM is to manage interest rate risk associated with long-term and non tradable assets and liabilities. ALM focuses on bank’s earnings and value which aim to measure the interest rate risk in the banking book.
+
+
+The phrase ’interest rate risk in the banking book’ (IRRBB) implies that the bank’s position and its financial situation are sensitive to fluctuations in market interest rates.\\
+
+
+Currently, regulators are considering standardizing the management of IRRBB to a certain extent. An example of a step taken in this direction are the reporting standards
+to IRRBB proposed by Basel Committee on Banking Supervision (BCBS) which were
+issued in April 2016 with the title: ”Standards on Interest Rate Risk in the Banking
+Book”. The new reporting standards propose two perspectives on evaluating IRRBB:
+earnings and economic value. The earnings perspective focuses on the impact of interest rate movements on the net interest or accrued income of a bank over a time
+horizon of several years. This perspective is measured in terms of Net Interest Income
+(NII). The economic value perspective focuses on the impact of changes in interest rate
+movements on the value of an institution’s asset, liabilities and off-balance sheet items.\\
+
+
+This perspective is measured in terms of Economic Value of Equity (EVE) (BCBS,
+2016). These two perspectives are based on different concepts, yield different results
+and employ different interest rate risk strategies.
+The earnings perspective captures the short-term effect of interest rate changes, whereas
+the economic value perspective captures the long-term effect of interest rate changes.
+Therefore, the two perspectives are considered complementary. As such, regulators
+require banks to disclose both metrics, in order to enable comparability. These two
+perspectives however follow different procedures and lead to different outcomes. Nevertheless, these two perspectives cannot be considered separately either. A pure focus on one could lead to destabilization of the alternative resulting in a trade-off.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Data Description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Loans}
+
+
+
+\section{Amortizing Loan}
+
+When a bank gives out a loan, the loan is expected to be payed back with interest. An \textbf{amortizing loan} is a type of loan in which the borrower makes regular, periodic payments that include both \textbf{principal} and \textbf{interest}. These payments are structured in a way that ensures the full repayment of the original loan amount (the principal) along with all accrued interest by the end of the loan term, or \textbf{maturity}. The process of spreading out the repayment of a loan over time is called \textbf{amortization}. The term "amortize" means to gradually reduce or pay off a debt over time.\\
+
+The \textbf{amortization schedule} is a table or spreadsheet that outlines the details of each payment, including the amount allocated to principal and interest for each period. It also shows the remaining balance after each payment. This schedule provides borrowers with a clear understanding of how their loan will be paid off and helps them budget for future payments. On the other side, for the banks the amortization schedule is useful for the calculations of future cashflows for risk management.
+
+\section{Loan Payment Structure}
+
+In this section we describe three basic and frequent loan payment structures, namely, the linear, the annuity and finally the bullet. The names describe the distribution of principal payments (repayment of the original loan volume). For example, for the linear loan payment, every month we pay fixed amount on the principal value. 
+
+
+\subsection{Bullet Loan Payment Structure}
+
+A bullet loan, also known as a bullet payment loan or balloon payment loan, is a type of loan structure in which the borrower makes regular interest payments throughout the loan term but repays the entire principal (the original loan amount) in a single lump-sum payment at the end of the loan term.\\
+
+Suppose $P$ represents the principal amount and $R$ denotes the annual interest on that principal. If $M$ is the total duration for loan repayment in months, and $m$ indicates the payment frequency (for example, 1 month), then the total number of payments can be given by $N=M/m$. The interest for each of these payment periods is calculated as $r = m \cdot R/12$ and the payment for the $i$th repayment period $p_i$ is
+\begin{align}
+	p_i =r\cdot P+\delta_{i,N}\cdot P
+\end{align}
+
+\subsection{Linear Payment Structure}
+
+A linear loan, also known as a straight-line loan or linear amortizing loan, is a type of loan structure in which the borrower pays back an equal portion of the principal at each payment period, along with the interest on the outstanding balance. The principal repayment remains constant throughout the loan term. However, since the outstanding balance reduces with each payment, the interest portion decreases over time, making the total payment amount decline over the life of the loan.\\
+
+Let $P$ is the principal amount, and $R$ is the annual interest on the principal. Let also $M$ be the total duration of the loan repayment (maturity), and $m$ the payment frequency (e.g. 1 month). Then, the interest for each payment period is $r=m\cdot R/12$, and the payment $p_i$ on the $i$th repayment period
+\begin{align}
+	p_i= \frac{P}{M}+r\cdot\underbrace{\bigg[P-\sum_{j=1}^{i-1}p_j\bigg]}_{\text{outstanding bal.}}
+\end{align}
+The first term is the principal payment, while the second is the interest payment.
+
+
+
+\subsection{Annuity Payment Structure}
+
+An annuity payment structure refers to a series of periodic payments made at equal intervals.  The borrower makes equal total payments each period consisting of both principal and interest. At the beginning of the loan term, a large portion of each payment is applied to interest, with a smaller portion going to reduce the principal. As the loan matures, the interest portion of each payment decreases, and the principal portion increases, but the total payment remains the same.\\
+
+Suppose $P$ represents the principal amount and $R$ denotes the annual interest on that principal. If $M$ is the total duration for loan repayment in months, and $m$ indicates the payment frequency (for example, 1 month), then the total number of payments can be given by $N=M/m$ and interest for each of these payment periods is calculated as $r = m \cdot R/12$. 
+
+An annuity is a series of equal payments (or cash flows) of $p_i=p$ made at the end of each period over $n$ periods. To derive the formula for $p$, we consider the present value of each payment. If we make the payment on the $i$th payment period, its present value is 
+$$\frac{p}{(1+r)^i}$$
+The present value of all the payments is required to be equal to the principal value of the loan. That is,
+$$P=p\cdot \sum_{i=1}^N\frac{1}{(1+r)^i}=p\cdot\frac{1-(r+1)^{-N}}{r}$$
+Therefore, we find that the constant periodic payment is
+\begin{align}
+	p=\frac{r\cdot P}{1-(1+r)^{-N}}
+\end{align}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Yield Curve}
+
+Whether you are an investor in equities, bonds, real estate, or other financial securities, the U.S. Treasury yield curve can be an important tool for the evaluation of investment decisions. As an indicator of market sentiment, the yield curve can show expected inflation, movement of interest rates, and the overall direction of the economy.\\
+
+
+In this chapter, we will examine the meaning of yield and its three main characteristics. Then we will explore interpretations of the different shapes of yield curves. Using the Nelson-Siegel-Svensson model, we can actually model the different yield curves for over 4000 daily observations between 1/2/1996 and 1/3/2012.
+ 
+\section{Yield Curve Characteristics}
+The term \textbf{yield} simply means the annual return on an investment. In this case, we are exploring the yields on U.S. Treasury bonds. There are three important characteristics of yield: level, slope, and curvature.
+
+\subsubsection{Level}
+
+The \textbf{level} is the average yield across maturities.
+\begin{align}
+	\text{Level}=\frac{\sum_{i=1}^ny_i}{n}\label{yield_level}
+\end{align}
+with $n$ being the number of observed yields.
+
+\subsubsection{Slope}
+
+The \textbf{slope}, also known as the \textbf{term spread}, of the yield is the difference between long term and short term yields.
+\begin{align}
+	\text{Slope}=y_{\text{Long Term}} - y_{\text{Short Term}}\label{yield_slope}
+\end{align}
+
+\subsubsection{Curvature}
+
+The curvature of a yield is a measure of the relative pricing of short term, medium term, and long term securities. The butterfly spread is a popular method used to calculate the curvature. Curvature can be an important indicator of expected future interest rates.
+\begin{align}
+	\textbf{Curvature}=-y_{\text{Short Term}} + 2y_{\text{Medium Term}} - y_{\text{Long Term}} \label{yield_curvature}
+\end{align}
+
+
+
+\section{What is a yield curve, and why is it important?}
+
+While understanding the level, slope, and curvature of yields is useful, yield curves are a popular tool for understanding overall economic performance. There are two main components to a yield curve: time to maturity and yield. In a standard yield curve, yield is plotted against time to maturity for financial securities of the same level of risk.4 Because U.S. Treasury bonds are considered to be default-free or riskless, their yields are not affected by certain variables like the yields corporate bonds or movements in the stock market. For this reason, the most commonly reported yield curve is that of U.S. Treasury bonds.\\
+
+The basic shapes of yield curves are \textbf{increasing, decreasing, hump, and flat}. An \textbf{increasing yield curve} means that long term yields are higher than short term yields, a common occurrence in U.S. Treasury yield curves. This means investors tend to expect higher future inflation, leading to higher nominal interest rates, and they need to be compensated for the length of their investment.\\
+
+A \textbf{decreasing yield curve} means short term rates are higher than long term rates. This corresponds to a negative slope in yields. This type of yield curve is fairly rare and typically followed by a recession within the next two years. (Estrella \& Mishkin, 1996) Looking at Figure 2, we can see that there was a negative spread beginning in early 2000 and a negative spread beginning in the middle of 2006. In both of these cases, negative slopes were followed by recession from March 2001 to November 2001 and December 2007 to June 2009. (The National Bureau of Economic Research, 2015)\\
+
+The \textbf{humped yield curve} means that medium term yields tend to be higher than short and long term yields. This can be a sign of economic slowing, but does not necessarily mean a recession is coming.\\
+
+ The other case we need to consider is a flat yield curve. This kind of curve shows rates that are about the same for all maturities. A flat yield curve expresses the current market sentiment that interest rates are not expected to change.
+ 
+
+\section{The Nelson--Siegei--Svensson Model}
+
+The Nelson and Siegel group of models are based on the original model by Nelson and Siegel, which originally had four parameters. The Svensson extension introduced two new “slope” parameters to allow for a better variety of shapes for both instantaneous forward rate curves and yield curves.  Virtualy any yield curve shape can be interpolated using these two models, which are widely used at banks around the world.\\
+
+The known X values represent the values on axis are the values that are known in advance such as time or years) and the known Y values represent the values on the y-axis (in our case, the known Interest Rates). The y-axis variable is typically the variable you wish to interpolate missing values from or extrapolate the values into the future.
+
+\subsection{Interpolation and Extrapolation}
+
+Sometimes there are missing values in a time-series data set. For instance, interest rates for years 1 to 3 may exist, followed by years 5 to 8, and then year 10. Nelson-Siegel model can be used to also be used to forecast or extrapolate values of future time periods beyond the time period of available data.
+
+ Equation \eqref{nss_instantaneous_forward_rate} shows how the instantaneous forward rate can be expressed as a function of the six parameters. The Nelson-Siegel-Svensson model provides a well behaved, smooth forward rate curve. The original Nelson-Siegel model is the same as the Svensson with $\beta_4=0$. Equation \eqref{nss_closed_form} shows how the model can be expressed as a closed form expression of yields.
+\begin{align}
+	f(t)=\beta_1+\beta_2\exp\bigg(\frac{-t}{\lambda_1}\bigg)
+			+\beta_3\frac{t}{\lambda_1}\exp\bigg(\frac{-t}{\lambda_1}\bigg)
+			+\beta_4\frac{t}{\lambda_2}\exp\bigg(\frac{-t}{\lambda_2}\bigg)
+			\label{nss_instantaneous_forward_rate}
+\end{align}
+\begin{align}
+	r(t)=\beta_1&+\beta_2\bigg(\frac{t}{\lambda_1}\bigg)^{-1}\bigg[1-\exp\bigg(\frac{-t}{\lambda_1}\bigg)\bigg]\nonumber\\
+		&+\beta_3\bigg\{\bigg(\frac{t}{\lambda_1}\bigg)^{-1}\bigg[1-\exp\bigg(\frac{-t}{\lambda_1}\bigg)\bigg]-\exp\bigg(\frac{-t}{\lambda_1}\bigg)\bigg\}\nonumber\\
+		&+\beta_4\bigg\{\bigg(\frac{t}{\lambda_2}\bigg)^{-1}\bigg[1-\exp\bigg(\frac{-t}{\lambda_2}\bigg)\bigg]-\exp\bigg(\frac{-t}{\lambda_2}\bigg)\bigg\}
+		\label{nss_closed_form}
+\end{align}
+A benefit of the Nelson-Siegel-Svensson model is the interpretations of $\beta_1$ and $\beta_1+\beta_2$. $\beta_1$ can be interpreted as the long term interest rate, while $\beta_1+\beta_2$. is the instantaneous short term interest rate
+
+
+
+
+
+\end{document}
