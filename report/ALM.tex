@@ -1,4 +1,4 @@
-\documentclass[11pt]{report}
+\documentclass[11pt]{article}
 \usepackage{amsmath}
 
 \begin{document}
@@ -51,11 +51,20 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+%TODO Introduction'
+%TODO Data description'
+%TODO Loans'
+%TODO Yield curve'
+%TODO Cashflows'
+%TODO Interest rate risk measurement'
 
-\chapter{Introduction}
 
 
-\section{Background}
+
+\section{Introduction}
+
+
+\subsection{Background}
 
 Asset and Liability Management (ALM) is a mechanism to address the risks faced by a
 bank that arise as a result of a mismatch between assets and liabilities due to liquidity and changes in interest rates. One of the central issues of ALM is to manage interest rate risk associated with long-term and non tradable assets and liabilities. ALM focuses on bank’s earnings and value which aim to measure the interest rate risk in the banking book.
@@ -88,125 +97,128 @@ perspectives however follow different procedures and lead to different outcomes.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Data Description}
+\section{Data Description}
 
+For the interest rate risk modelling part, we use two datasets from $2014-09-30$, namely the bank's portfolio and the market for zero-coupon bonds with different maturities.\\
+
+More specifically, the portfolio contains the following data. 
+\begin{itemize}
+	\item \textbf{id:} identification number (index of the row)
+	\item \textbf{account:} account type in short (e.g. mmp\_1)
+	\item \textbf{account\_name:} long account name (e.g. Money market placements)
+	\item \textbf{volume:} notional value in EUR
+	\item \textbf{ir\_binding:} type of the interest rate. FIX for fixed rates, and LIBOR for variable rates with the variable benchmark LIBOR
+	\item \textbf{reprice\_freq:} repricing frequency (of the rates) in months if the interest binding is LIBOR
+	\item \textbf{spread:} the spread component of the interest rate in basis points (1 basis point $0.01\%$). The other component is the market's interest rates. $$(\text{Interest rate}) = (\text{Market's interest rate})+(\text{spread})$$
+	\item 
+\end{itemize}
+
+    
+%    - Cash-flow structure of the products
+%    :col issue: issue date (this is the first repricing day)
+%    :col maturity: maturity date
+%    :col repayment: type of principal repayment structure (bullet, linear, or annuity)
+%    :col payment_freq: repayment frequency in number of months
+%    :col yieldcurve: identifier of the interest rate curve
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Loans}
+\section{Loans}
 
 
-
-\section{Amortizing Loan}
+\subsection{Amortizing Loan}
 
 When a bank gives out a loan, the loan is expected to be payed back with interest. An \textbf{amortizing loan} is a type of loan in which the borrower makes regular, periodic payments that include both \textbf{principal} and \textbf{interest}. These payments are structured in a way that ensures the full repayment of the original loan amount (the principal) along with all accrued interest by the end of the loan term, or \textbf{maturity}. The process of spreading out the repayment of a loan over time is called \textbf{amortization}. The term "amortize" means to gradually reduce or pay off a debt over time.\\
 
 The \textbf{amortization schedule} is a table or spreadsheet that outlines the details of each payment, including the amount allocated to principal and interest for each period. It also shows the remaining balance after each payment. This schedule provides borrowers with a clear understanding of how their loan will be paid off and helps them budget for future payments. On the other side, for the banks the amortization schedule is useful for the calculations of future cashflows for risk management.
 
-\section{Loan Payment Structure}
+\subsection{Loan Payment Structure}
 
 In this section we describe three basic and frequent loan payment structures, namely, the linear, the annuity and finally the bullet. The names describe the distribution of principal payments (repayment of the original loan volume). For example, for the linear loan payment, every month we pay fixed amount on the principal value. 
 
 
-\subsection{Bullet Loan Payment Structure}
+\subsubsection{Bullet Loan Payment Structure}
 
 A bullet loan, also known as a bullet payment loan or balloon payment loan, is a type of loan structure in which the borrower makes regular interest payments throughout the loan term but repays the entire principal (the original loan amount) in a single lump-sum payment at the end of the loan term.\\
 
-Suppose $P$ represents the principal amount and $R$ denotes the annual interest on that principal. If $M$ is the total duration for loan repayment in months, and $m$ indicates the payment frequency (for example, 1 month), then the total number of payments can be given by $N=M/m$. The interest for each of these payment periods is calculated as $r = m \cdot R/12$ and the payment for the $i$th repayment period $p_i$ is
+Suppose $P$ represents the principal amount, and the loan is to be repayed in $N$ regular (e.g. monthly) instalments. If at each period $i$, the interest rate (for the length of this period) is $r_i$, then the payment for that period $p_i$ is 
 \begin{align}
-	p_i =r\cdot P+\delta_{i,N}\cdot P
+	p_i(P,r_i,N) =r_i\cdot P+\delta_{i,N}\cdot P
 \end{align}
+with $r_i\cdot P$ being the interest payment, and $\delta_{i,N}\cdot P$ is the final lump-sum principal payment.
 
-\subsection{Linear Payment Structure}
+\subsubsection{Linear Payment Structure}
 
 A linear loan, also known as a straight-line loan or linear amortizing loan, is a type of loan structure in which the borrower pays back an equal portion of the principal at each payment period, along with the interest on the outstanding balance. The principal repayment remains constant throughout the loan term. However, since the outstanding balance reduces with each payment, the interest portion decreases over time, making the total payment amount decline over the life of the loan.\\
 
-Let $P$ is the principal amount, and $R$ is the annual interest on the principal. Let also $M$ be the total duration of the loan repayment (maturity), and $m$ the payment frequency (e.g. 1 month). Then, the interest for each payment period is $r=m\cdot R/12$, and the payment $p_i$ on the $i$th repayment period
+Suppose $P$ represents the principal amount, and the loan is to be repayed in $N$ regular (e.g. monthly) instalments. If at each period $i$, the interest rate (for the length of this period) is $r_i$, then the payment for that period $p_i$ is 
 \begin{align}
-	p_i= \frac{P}{M}+r\cdot\underbrace{\bigg[P-\sum_{j=1}^{i-1}p_j\bigg]}_{\text{outstanding bal.}}
+	p_i\big(P,N,r_i,\{p_j\}_{j=1}^{i-1}\big)= \frac{P}{N}+r_i\cdot\underbrace{\bigg[P-\sum_{j=1}^{i-1}p_j\bigg]}_{\text{outstanding bal.}}
 \end{align}
 The first term is the principal payment, while the second is the interest payment.
 
 
 
-\subsection{Annuity Payment Structure}
+\subsubsection{Annuity Payment Structure}
 
-An annuity payment structure refers to a series of periodic payments made at equal intervals.  The borrower makes equal total payments each period consisting of both principal and interest. At the beginning of the loan term, a large portion of each payment is applied to interest, with a smaller portion going to reduce the principal. As the loan matures, the interest portion of each payment decreases, and the principal portion increases, but the total payment remains the same.\\
+An annuity payment structure refers to a series of periodic payments made at equal intervals. The key feature of this payment structure is that the sum of the present values of all payments must be equal to the principal value. When the interest rates are fixed, the borrower makes equal total payments each period consisting of both principal and interest. At the beginning of the loan term, a large portion of each payment is applied to interest, with a smaller portion going to reduce the principal. As the loan matures, the interest portion of each payment decreases, and the principal portion increases, but the total payment remains the same.\\
 
-Suppose $P$ represents the principal amount and $R$ denotes the annual interest on that principal. If $M$ is the total duration for loan repayment in months, and $m$ indicates the payment frequency (for example, 1 month), then the total number of payments can be given by $N=M/m$ and interest for each of these payment periods is calculated as $r = m \cdot R/12$. 
+Suppose $P$ represents the principal amount, and the loan is to be repayed in $N$ regular (e.g. monthly) instalments. If at each period $i$, the interest rate (for the length of this period) is $r_i$, then the payment for that period $p_i$ is derived in the following fashion.\\
 
-An annuity is a series of equal payments (or cash flows) of $p_i=p$ made at the end of each period over $n$ periods. To derive the formula for $p$, we consider the present value of each payment. If we make the payment on the $i$th payment period, its present value is 
-$$\frac{p}{(1+r)^i}$$
+An annuity is a series of constant (fixed) payments (or cash flows) of $p_i=p$ made at the end of each period over $n$ periods. To derive the formula for $p_i$, we consider the present value of each payment. If we make the payment on the $i$th payment period, its present value is 
+$$\text{PV}(p_i)=p\bigg/\prod_{j=1}^i(1+r_j)$$
 The present value of all the payments is required to be equal to the principal value of the loan. That is,
+\begin{align}
+	P=\sum_{i=1}^N\text{PV}(p_i)=p\sum_{i=1}^N\bigg[\prod_{j=1}^i(1+r_j)\bigg]^{-1}\nonumber
+\end{align}
+which gives us 
+\begin{align}
+	p_i=P\bigg/\sum_{i=1}^N\bigg[\prod_{j=1}^i(1+r_j)\bigg]^{-1}\label{annuity_der}
+\end{align}
+When the interest rates are fixed, the formulas become much simpler. To be more explicit
+
 $$P=p\cdot \sum_{i=1}^N\frac{1}{(1+r)^i}=p\cdot\frac{1-(r+1)^{-N}}{r}$$
-Therefore, we find that the constant periodic payment is
+and therefore, we find that the constant periodic payment is
 \begin{align}
-	p=\frac{r\cdot P}{1-(1+r)^{-N}}
+	p(P, N, r)=\frac{r\cdot P}{1-(1+r)^{-N}}\label{annuity_payment}
 \end{align}
+\\
 
+In all practical cases, when the interest rates are variable, the payment is not calculated with \eqref{annuity_der}, because, even thought the future interest rates may be predicted under certain models and assumptions, they are not known. In this case, the periodic payment is not constant and is recalculated at each period based on the current interest rate, the outstanding balance, and the time to maturity at that time with \eqref{annuity_payment}. Thus, the payment (or cashflow) during the $i$th payment period is
+\begin{align}
+	p_i=\frac{r_i}{1-(1+r_i)^{-N_i}}\cdot \underbrace{\bigg [P-\sum_{j=1}^ip_j\bigg]}_{\text{outstanding bal.}}
+\end{align}
+with $N_i$ being the number of payment periods remaining to maturity. We see that the payment is calculated as if the loan payment started at that period, with principal
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Yield Curve}
+\section{Yield Curve}
 
-Whether you are an investor in equities, bonds, real estate, or other financial securities, the U.S. Treasury yield curve can be an important tool for the evaluation of investment decisions. As an indicator of market sentiment, the yield curve can show expected inflation, movement of interest rates, and the overall direction of the economy.\\
+A \textbf{yield curve} is a graphical representation of annual returns on assets with similar risk profile for a range of maturities. The horizontal axis represents the time to maturities, while the vertical axis represents the yield.
 
+\subsection{What are spot yields}
 
-In this chapter, we will examine the meaning of yield and its three main characteristics. Then we will explore interpretations of the different shapes of yield curves. Using the Nelson-Siegel-Svensson model, we can actually model the different yield curves for over 4000 daily observations between 1/2/1996 and 1/3/2012.
+ In our case, we are interested in \textbf{spot yields} or \textbf{spot rates}, which are the yields of zero-coupon bonds for specific maturities. A \textbf{zero-coupon bond} is a bond that does not make periodic interest payments and is instead issued at a discount too its face value. It matures at its face value, and the difference between the purchase price and that face value is the interest earned by the bondholder.\\
  
-\section{Yield Curve Characteristics}
-The term \textbf{yield} simply means the annual return on an investment. In this case, we are exploring the yields on U.S. Treasury bonds. There are three important characteristics of yield: level, slope, and curvature.
-
-\subsubsection{Level}
-
-The \textbf{level} is the average yield across maturities.
-\begin{align}
-	\text{Level}=\frac{\sum_{i=1}^ny_i}{n}\label{yield_level}
-\end{align}
-with $n$ being the number of observed yields.
-
-\subsubsection{Slope}
-
-The \textbf{slope}, also known as the \textbf{term spread}, of the yield is the difference between long term and short term yields.
-\begin{align}
-	\text{Slope}=y_{\text{Long Term}} - y_{\text{Short Term}}\label{yield_slope}
-\end{align}
-
-\subsubsection{Curvature}
-
-The curvature of a yield is a measure of the relative pricing of short term, medium term, and long term securities. The butterfly spread is a popular method used to calculate the curvature. Curvature can be an important indicator of expected future interest rates.
-\begin{align}
-	\textbf{Curvature}=-y_{\text{Short Term}} + 2y_{\text{Medium Term}} - y_{\text{Long Term}} \label{yield_curvature}
-\end{align}
-
-
-
-\section{What is a yield curve, and why is it important?}
-
-While understanding the level, slope, and curvature of yields is useful, yield curves are a popular tool for understanding overall economic performance. There are two main components to a yield curve: time to maturity and yield. In a standard yield curve, yield is plotted against time to maturity for financial securities of the same level of risk.4 Because U.S. Treasury bonds are considered to be default-free or riskless, their yields are not affected by certain variables like the yields corporate bonds or movements in the stock market. For this reason, the most commonly reported yield curve is that of U.S. Treasury bonds.\\
-
-The basic shapes of yield curves are \textbf{increasing, decreasing, hump, and flat}. An \textbf{increasing yield curve} means that long term yields are higher than short term yields, a common occurrence in U.S. Treasury yield curves. This means investors tend to expect higher future inflation, leading to higher nominal interest rates, and they need to be compensated for the length of their investment.\\
-
-A \textbf{decreasing yield curve} means short term rates are higher than long term rates. This corresponds to a negative slope in yields. This type of yield curve is fairly rare and typically followed by a recession within the next two years. (Estrella \& Mishkin, 1996) Looking at Figure 2, we can see that there was a negative spread beginning in early 2000 and a negative spread beginning in the middle of 2006. In both of these cases, negative slopes were followed by recession from March 2001 to November 2001 and December 2007 to June 2009. (The National Bureau of Economic Research, 2015)\\
-
-The \textbf{humped yield curve} means that medium term yields tend to be higher than short and long term yields. This can be a sign of economic slowing, but does not necessarily mean a recession is coming.\\
-
- The other case we need to consider is a flat yield curve. This kind of curve shows rates that are about the same for all maturities. A flat yield curve expresses the current market sentiment that interest rates are not expected to change.
+ Since spot yields pertain to zero-coupon bonds, they provide a pure measure of interest rates over different horizons without the complexities introduced by periodic coupon payments. This makes them a clear and direct indicator of the cost of borrowing money for specific time periods. \\
  
+  Spot yields are useful to banks for a number of reasons; for example loan pricing and deriving forward rates. As far as the loan pricing is concerned, banks might refer to the yield curve and issue loans with rate calculated by adding a spread to the spot yield for the corresponding maturity, for credit-risk and profit. As for the forward yields, we describe them in a following subsection.
 
-\section{The Nelson--Siegei--Svensson Model}
+
+\subsection{Modelling Spot Yield Curve}
+
+One can find the relation between the spot yields and the time to maturity with various models. A particularly flexible model is the  Nelson--Siegei--Svensson model. \\
 
 The Nelson and Siegel group of models are based on the original model by Nelson and Siegel, which originally had four parameters. The Svensson extension introduced two new “slope” parameters to allow for a better variety of shapes for both instantaneous forward rate curves and yield curves.  Virtualy any yield curve shape can be interpolated using these two models, which are widely used at banks around the world.\\
 
-The known X values represent the values on axis are the values that are known in advance such as time or years) and the known Y values represent the values on the y-axis (in our case, the known Interest Rates). The y-axis variable is typically the variable you wish to interpolate missing values from or extrapolate the values into the future.
+Two of the main reasons we want to model the relation between the time to maturity and the spot yield are interpolation, and extrapolation.
+Sometimes there are missing values in a time-series data set. For instance, interest rates for years 1 to 3 may exist, followed by years 5 to 8, and then year 10. Our model can be used to also be used to forecast or extrapolate values of future time periods beyond the time period of available data.\\
 
-\subsection{Interpolation and Extrapolation}
-
-Sometimes there are missing values in a time-series data set. For instance, interest rates for years 1 to 3 may exist, followed by years 5 to 8, and then year 10. Nelson-Siegel model can be used to also be used to forecast or extrapolate values of future time periods beyond the time period of available data.
+The known $x$ values represent the values on the $x$-axis, which are the values that are known in advance such as time (or years). and the known $y$ values represent the values on the $y$-axis (in our case, the known Interest Rates). The $y$-axis variable is typically the variable you wish to interpolate missing values from or extrapolate the values into the future.\\
 
  Equation \eqref{nss_instantaneous_forward_rate} shows how the instantaneous forward rate can be expressed as a function of the six parameters. The Nelson-Siegel-Svensson model provides a well behaved, smooth forward rate curve. The original Nelson-Siegel model is the same as the Svensson with $\beta_4=0$. Equation \eqref{nss_closed_form} shows how the model can be expressed as a closed form expression of yields.
 \begin{align}
@@ -221,7 +233,48 @@ Sometimes there are missing values in a time-series data set. For instance, inte
 		&+\beta_4\bigg\{\bigg(\frac{t}{\lambda_2}\bigg)^{-1}\bigg[1-\exp\bigg(\frac{-t}{\lambda_2}\bigg)\bigg]-\exp\bigg(\frac{-t}{\lambda_2}\bigg)\bigg\}
 		\label{nss_closed_form}
 \end{align}
-A benefit of the Nelson-Siegel-Svensson model is the interpretations of $\beta_1$ and $\beta_1+\beta_2$. $\beta_1$ can be interpreted as the long term interest rate, while $\beta_1+\beta_2$. is the instantaneous short term interest rate
+A benefit of the Nelson-Siegel-Svensson model is the interpretations of $\beta_1$ and $\beta_1+\beta_2$. $\beta_1$ can be interpreted as the long term interest rate, while $\beta_1+\beta_2$ is the instantaneous short term interest rate.
+
+ \subsection{Forward Yields}
+
+Forward yields (or forward rates) represent the expected future interest rates for specific periods, derived from current spot rates. They offer insight into the market's expectations regarding future interest rate movements, economic conditions, and expected future cashflows. Forward rates can be calculated under the assumption of non-arbitrage with the following syllogism. 
+
+Suppose we aim to determine the forward yield \(f_{t,s}\) for a zero-coupon bond that begins accruing in \(t\) periods (e.g., years) and spans \(s\) periods. To find \(f_{t,s}\), we set up a scenario. Imagine we first invest in a bond maturing in \(t\) periods with a current spot yield of \(Y_t\). Once this bond matures, we then reinvest the proceeds into a new zero-coupon bond that starts accruing at \(t\) and matures at \(t+s\). The return from this strategy should be equivalent to directly investing in a zero-coupon bond that begins accruing now and matures at \(t+s\) with a spot yield of \(Y_{t+s}\). Therefore, the relationship can be expressed as:
+\begin{equation}
+(1 + Y_{t+s})^{t+s} = (1 + Y_t)^t(1 + f_{t,s})^s
+\end{equation}
+From which, the forward yield \(f_{t,s}\) can be isolated as:
+\begin{equation}
+f_{t,s} = \left[ \frac{(1 + Y_{t+s})^{t+s}}{(1 + Y_t)^t} \right]^{1/s} - 1
+\end{equation}
+
+\subsection{Calculating forward interest rates for the bank's portfolio}
+
+As we mentioned in the section that describes the data, the portfolio consists of assets and liabilities that the bank owns. Some of them have fixed rates, while others have variable. The possible variations of interest rates do not affect the cashflows generated by the former. However, since the rates of the latter are variable, in order to calculate their future cashflows we have to calculate the values of the rates for the dates of the payments. To do so, we use the curve \eqref{nss_closed_form} to calculate the spot rates for the payment dates, and then 
+
+\section{Cashflows}
+
+In the following, 
+
+
+\section{Interest Rate Risk Measurement}
+
+Interest rate risk is the potential for changes in interest rates to negatively impact the financial position of an institution, particularly those institutions that are involved in lending, borrowing, or holding fixed-income securities. Interest rate management focuses on the sensitivity of net interest income. \textbf{Net interest income (NII)} equals the difference between interest revenues and interest expenses:
+\begin{align}
+	\text{NII}=(A_S+A_{NS})\cdot r_A-(L_S+L_{NS})\cdot r_L
+\end{align}
+Here $A_S$ and $A_{NS}$ are the interest sensitive and non-sensitive assets, and $r_A$ is the interest rate of the assets. Similarly, $L_S$ and $L_{NS}$ are the interest sensitive and non-sensitive liabilities, with $r_L$ being the interest rate of liabilities.\\
+
+ The traditional approach of interest rate risk positioning of the balance sheet is based on gap models. Interest rate gap refers to the net asset position for a certain time period between interest-bearing assets and liabilities, which are repriced at the same time. The interest rate gap ($G$) equals:
+\begin{align}
+	G=A_S-L_S
+\end{align}
+
+
+
+
+
+
 
 
 
