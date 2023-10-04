@@ -130,7 +130,7 @@ def get_present_values(cashflows, market, today):
     return table
 
 
-def nii_table(cashflow_table, today):
+def nii_table(cashflow_table, today, plot=False):
     """ Returns table that breaks down the Net Interest Income (NII) """
     table = cashflow_table.pivot_table(index='date', columns='account', values='interest', aggfunc='sum').reset_index()
     table = table[table['date'] >= today]
@@ -141,6 +141,31 @@ def nii_table(cashflow_table, today):
     
     table['year'] = table['date'].dt.year
     nii_table = table.groupby('year').sum().T
+
+    if plot:
+        fig, ax = plt.subplots(figsize=(12, 8))
+
+        # Bar width and positions
+        num_years = len(nii_table.columns)
+        width = 0.15
+        ind = np.arange(num_years)
+
+        # Plot bars for each account
+        for i, account in enumerate(nii_table.index):
+            ax.bar(ind + i * width, nii_table.loc[account], width, label=str(account))
+
+        # Set axis labels, title, and legend
+        ax.set_xlabel('Year')
+        ax.set_ylabel('Net Interest Income')
+        ax.set_title('Net Interest Income by Year and Account')
+        ax.set_xticks(ind + width * (len(nii_table.index) - 1) / 2)  # Centering the x-tick labels
+        ax.set_xticklabels(nii_table.columns, rotation=45, ha='right')
+        ax.legend()
+
+        # Display the plot
+        plt.tight_layout()
+        plt.show()
+
     return nii_table
 
 
