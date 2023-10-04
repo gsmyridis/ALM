@@ -143,24 +143,28 @@ def nii_table(cashflow_table, today, plot=False):
     nii_table = table.groupby('year').sum().T
 
     if plot:
+        # Set up the figure and axis
         fig, ax = plt.subplots(figsize=(12, 8))
 
         # Bar width and positions
         num_years = len(nii_table.columns)
-        width = 0.15
+        width = 0.6
         ind = np.arange(num_years)
+        
+        bottoms = np.zeros(num_years)
 
-        # Plot bars for each account
-        for i, account in enumerate(nii_table.index):
-            ax.bar(ind + i * width, nii_table.loc[account], width, label=str(account))
+        # Plot vertically stacked bars for each account
+        for account in nii_table.index:
+            ax.bar(ind, nii_table.loc[account], width, label=str(account), bottom=bottoms)
+            bottoms += nii_table.loc[account].values
 
         # Set axis labels, title, and legend
         ax.set_xlabel('Year')
         ax.set_ylabel('Net Interest Income')
         ax.set_title('Net Interest Income by Year and Account')
-        ax.set_xticks(ind + width * (len(nii_table.index) - 1) / 2)  # Centering the x-tick labels
+        ax.set_xticks(ind)
         ax.set_xticklabels(nii_table.columns, rotation=45, ha='right')
-        ax.legend()
+        ax.legend(loc='upper left', bbox_to_anchor=(1,1))
 
         # Display the plot
         plt.tight_layout()
