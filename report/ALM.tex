@@ -1,5 +1,8 @@
 \documentclass[11pt]{article}
-\usepackage{amsmath}
+\usepackage{amsmath, amsfonts}
+\usepackage{graphicx}
+\graphicspath{images/}
+
 
 \begin{document}
 
@@ -103,13 +106,13 @@ For the interest rate risk modelling part, we use two datasets from $2014-09-30$
 
 More specifically, the portfolio contains the following data. 
 \begin{itemize}
-	\item \textbf{id:} identification number (index of the row)
-	\item \textbf{account:} account type in short (e.g. mmp\_1)
-	\item \textbf{account\_name:} long account name (e.g. Money market placements)
-	\item \textbf{volume:} notional value in EUR
-	\item \textbf{ir\_binding:} type of the interest rate. FIX for fixed rates, and LIBOR for variable rates with the variable benchmark LIBOR
-	\item \textbf{reprice\_freq:} repricing frequency (of the rates) in months if the interest binding is LIBOR
-	\item \textbf{spread:} the spread component of the interest rate in basis points (1 basis point $0.01\%$). The other component is the market's interest rates. $$(\text{Interest rate}) = (\text{Market's interest rate})+(\text{spread})$$
+	\item \textit{id:} identification number (index of the row)
+	\item \textit{account:} account type in short (e.g. mmp\_1)
+	\item \textit{account\_name:} long account name (e.g. Money market placements)
+	\item \textit{volume:} notional value in EUR
+	\item \textit{ir\_binding:} type of the interest rate. FIX for fixed rates, and LIBOR for variable rates with the variable benchmark LIBOR
+	\item \textit{reprice\_freq:} repricing frequency (of the rates) in months if the interest binding is LIBOR
+	\item \textit{spread:} the spread component of the interest rate in basis points (1 basis point $0.01\%$). The other component is the market's interest rates. $$(\text{Interest rate}) = (\text{Market's interest rate})+(\text{spread})$$
 	\item 
 \end{itemize}
 
@@ -124,10 +127,7 @@ More specifically, the portfolio contains the following data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Loans}
-
-
-\subsection{Amortizing Loan}
+\section{Amortizing Loans}
 
 When a bank gives out a loan, the loan is expected to be payed back with interest. An \textbf{amortizing loan} is a type of loan in which the borrower makes regular, periodic payments that include both \textbf{principal} and \textbf{interest}. These payments are structured in a way that ensures the full repayment of the original loan amount (the principal) along with all accrued interest by the end of the loan term, or \textbf{maturity}. The process of spreading out the repayment of a loan over time is called \textbf{amortization}. The term "amortize" means to gradually reduce or pay off a debt over time.\\
 
@@ -145,8 +145,27 @@ A bullet loan, also known as a bullet payment loan or balloon payment loan, is a
 Suppose $P$ represents the principal amount, and the loan is to be repayed in $N$ regular (e.g. monthly) instalments. If at each period $i$, the interest rate (for the length of this period) is $r_i$, then the payment for that period $p_i$ is 
 \begin{align}
 	p_i(P,r_i,N) =r_i\cdot P+\delta_{i,N}\cdot P
+	\label{bullet}
 \end{align}
 with $r_i\cdot P$ being the interest payment, and $\delta_{i,N}\cdot P$ is the final lump-sum principal payment.
+\begin{figure}[ht!]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		& cashflow & interest & capital & remaining\\
+		\hline
+		1 & 75.0 & 75.0 & 0.0 & 7500.0\\
+		\hline
+		2 & 75.0 & 75.0 & 0.0 & 7500.0\\
+		\hline
+		3 & 7575.0 & 75.0 & 7500.0 & 0.0\\
+		\hline
+	\end{tabular}
+	\caption{Example of amortization schedule for a bullet loan with principal volume $7500$, monthly rate $0.01$ and maturity 3 months after issuance.}
+\end{figure}
+
+	
+
 
 \subsubsection{Linear Payment Structure}
 
@@ -155,8 +174,24 @@ A linear loan, also known as a straight-line loan or linear amortizing loan, is 
 Suppose $P$ represents the principal amount, and the loan is to be repayed in $N$ regular (e.g. monthly) instalments. If at each period $i$, the interest rate (for the length of this period) is $r_i$, then the payment for that period $p_i$ is 
 \begin{align}
 	p_i\big(P,N,r_i,\{p_j\}_{j=1}^{i-1}\big)= \frac{P}{N}+r_i\cdot\underbrace{\bigg[P-\sum_{j=1}^{i-1}p_j\bigg]}_{\text{outstanding bal.}}
+	\label{linear}
 \end{align}
 The first term is the principal payment, while the second is the interest payment.
+\begin{figure}[ht!]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		& cashflow & interest & capital & remaining\\
+		\hline
+		1 & 2575.0 & 75.0 & 2500.0 & 7500.0\\
+		\hline
+		2 & 2550.0 & 50.0 & 2500.0 & 5000.0\\
+		\hline
+		3 & 2525.0 & 25.0 & 2500.0 & 2500.0\\
+		\hline
+	\end{tabular}
+	\caption{Example of amortization schedule for a linear loan with principal volume $7500$, monthly rate $0.01$ and maturity 3 months after issuance.}
+\end{figure}
 
 
 
@@ -188,11 +223,26 @@ and therefore, we find that the constant periodic payment is
 In all practical cases, when the interest rates are variable, the payment is not calculated with \eqref{annuity_der}, because, even thought the future interest rates may be predicted under certain models and assumptions, they are not known. In this case, the periodic payment is not constant and is recalculated at each period based on the current interest rate, the outstanding balance, and the time to maturity at that time with \eqref{annuity_payment}. Thus, the payment (or cashflow) during the $i$th payment period is
 \begin{align}
 	p_i=\frac{r_i}{1-(1+r_i)^{-N_i}}\cdot \underbrace{\bigg [P-\sum_{j=1}^ip_j\bigg]}_{\text{outstanding bal.}}
+	\label{annuity}
 \end{align}
-with $N_i$ being the number of payment periods remaining to maturity. We see that the payment is calculated as if the loan payment started at that period, with principal
+with $N_i$ being the number of payment periods remaining to maturity. The payment on each due date is determined as though the loan began on that specific date, using the remaining balance as the principal amount and applying the current floating rate, which is presumed to continue until the loan's end date.
+\begin{figure}[ht!]
+	\centering
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		& cashflow & interest & capital & remaining\\
+		\hline
+		1 & 1922.11 & 75.0 & 1847.11 & 5652.89\\
+		\hline
+		2 & 1922.11 & 56.53 & 1865.58 & 3787.30\\
+		\hline
+		3 & 1922.11 & 37.87 & 1884.24 & 1903.10\\
+		\hline
+	\end{tabular}
+	\caption{Example of amortization schedule for a linear loan with principal volume $7500$, monthly rate $0.01$ and maturity 3 months after issuance.}
+\end{figure}
 
-
-
+\textit{The cashflow.py module includes a function named amortization\_schedule. This function provides the amortization schedule for an asset or liability, offering repayment structures such as bullet, linear, or annuity, as demonstrated in prior examples.}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -200,7 +250,7 @@ with $N_i$ being the number of payment periods remaining to maturity. We see tha
 
 A \textbf{yield curve} is a graphical representation of annual returns on assets with similar risk profile for a range of maturities. The horizontal axis represents the time to maturities, while the vertical axis represents the yield.
 
-\subsection{What are spot yields}
+\subsection{Spot yields}
 
  In our case, we are interested in \textbf{spot yields} or \textbf{spot rates}, which are the yields of zero-coupon bonds for specific maturities. A \textbf{zero-coupon bond} is a bond that does not make periodic interest payments and is instead issued at a discount too its face value. It matures at its face value, and the difference between the purchase price and that face value is the interest earned by the bondholder.\\
  
@@ -246,31 +296,77 @@ Suppose we aim to determine the forward yield \(f_{t,s}\) for a zero-coupon bond
 From which, the forward yield \(f_{t,s}\) can be isolated as:
 \begin{equation}
 f_{t,s} = \left[ \frac{(1 + Y_{t+s})^{t+s}}{(1 + Y_t)^t} \right]^{1/s} - 1
+\label{forward_rates}
 \end{equation}
 
-\subsection{Calculating forward interest rates for the bank's portfolio}
 
-As we mentioned in the section that describes the data, the portfolio consists of assets and liabilities that the bank owns. Some of them have fixed rates, while others have variable. The possible variations of interest rates do not affect the cashflows generated by the former. However, since the rates of the latter are variable, in order to calculate their future cashflows we have to calculate the values of the rates for the dates of the payments. To do so, we use the curve \eqref{nss_closed_form} to calculate the spot rates for the payment dates, and then 
+\textit{The yieldcurve.py module includes a YieldCurve class that is fits the Nelson-Siegei-Svensson model to market data, and subsequently can provide spot rates and forward rates for provided dates and time periods. Additionally, given repricing dates, it can return the floating rates for certain payment dates.
+}
 
-\section{Cashflows}
+\section{Portfolio Cashflows}
 
-In the following, 
+In this section, we detail the methodology for calculating the bank's portfolio cashflows. We previously emphasized that the portfolio encompasses both assets and liabilities. Moreover, we clarified that all assets have one of three repayment structures: bullet, linear, or annuity. The cashflows for these assets and liabilities are determined using equations \eqref{bullet}, \eqref{linear}, and \eqref{annuity}, provided we apply the appropriate rates. Some items bear fixed interest rates, making their generated cash flows resistant to interest rate changes. Conversely, variable-rate items adjust according to interest rates. To forecast their future cash flows, it's essential to know the rate values on upcoming payment dates. Although exact predictions are challenging, we can make estimations using forward rates from the yield curve, as indicated in equations \eqref{nss_closed_form} and \eqref{forward_rates}.
+
+\subsection{Floating Rates}
+
+
+Suppose we aim to forecast future cashflows for an asset influenced by variable rates, using LIBOR as a benchmark, and an added spread \(s\) on top. This asset has an issuance date of \(d_i\) and matures on \(d_m\). Our dataset includes the repayment frequency, denoted in months as \(T_{\text{repay}}\). We use this frequency to determine repayment dates by moving backwards from the maturity date in intervals set by the repayment frequency:
+$$D_{pay}=\{d_{pay}=d_m-j\cdot T_{repay}\ |\ j\in \mathbb{N}\ \wedge\ d_{pay}\geq d_i\}$$
+Furthermore, our data indicates the repricing frequency in months as \(T_{\text{reprice}}\). This frequency helps establish the dates when the asset's interest rates are revised. The initial rate is set on the issuance date \(d_i\), with subsequent adjustments happening every \(T_{\text{reprice}}\) months:
+ $$D_{reprice}= \{d_{reprice}=d_i+j\cdot T_{reprice}\ |\ j\in\mathbb{N}\ \wedge\ d_{reprice} \leq d_m\}$$
+
+The interest rate remains unchanged between successive repricing dates. To estimate these forthcoming rates, forward rates tailored for each duration are utilized. Consider $P_j$ as the interval from the $j$th to the $(j+1)$th repricing date, defined as
+$$P_j=[d_{reprice}(j),\ d_{reprice}(j)+T_{reprice})$$
+Let's introduce a function \(y(d_1,d_2)\) that calculates the difference in years between two dates, starting from \(d_1\) and concluding on \(d_2\). Using \(d_{\text{today}}\) to represent the present date, we can express \(t_j\) as \(y(d_{\text{today}},d_{\text{reprice}}(j))\). For the interval \(P_j\), the benchmark LIBOR rate is presumed to be invariant, aligning with the forward rate:
+\begin{align}
+	f_{t_j,s}=\left[ \frac{(1 + Y_{t_j+s})^{t_j+s}}{(1 + Y_{t_j})^{t_j}} \right]^{1/s} - 1	
+\end{align}
+where \(s\) stands for \(T_{\text{reprice}}\) expressed in years. To find the annual interest rate of the asset or liability, we simply add the corresponding spread to $f_{t_j,s}$.\\
+
+Finally, for each payment date \(d_{\text{pay}}\in D_{\text{reprice}}\), we determine the period \(P_j\) such that \(d_{\text{pay}}\in P_j\), and assign the corresponding rate to it. With these rates then, we can calculate the cashflow from each asset or liability with \eqref{bullet}, \eqref{linear} or \eqref{annuity}, depending on its repayment structure.\\
+
+\textit{In the cashflow.py module, the asset\_cashflow function provides cashflows for an individual asset or liability, distinguishing between interest and principal components. Additionally, the portfolio\_cashflow function delivers cashflows for every asset or liability within the portfolio.}
+
 
 
 \section{Interest Rate Risk Measurement}
 
-Interest rate risk is the potential for changes in interest rates to negatively impact the financial position of an institution, particularly those institutions that are involved in lending, borrowing, or holding fixed-income securities. Interest rate management focuses on the sensitivity of net interest income. \textbf{Net interest income (NII)} equals the difference between interest revenues and interest expenses:
+Interest rate risk is the potential for changes in interest rates to negatively impact the financial position of an institution, particularly those institutions that are involved in lending, borrowing, or holding fixed-income securities. Interest rate management focuses on the sensitivity of \textbf{net interest income (NII)}.  The net interest income equals the difference between interest revenues and interest expenses.\\
+
+Assume $\mathcal{A}_S$ and $\mathcal{A}_{NS}$ be the sets of interest sensitive and non-sensitive assets. Similarly, let $\mathcal{L}_S$ and $\mathcal{L}_{NS}$ be the sets of interest sensitive and non-sensitive liabilities. Then the net interest income is
 \begin{align}
-	\text{NII}=(A_S+A_{NS})\cdot r_A-(L_S+L_{NS})\cdot r_L
+	\text{NII}=\sum_{a_S\in\mathcal{A}_S}R(a_S)+\sum_{a_{NS}\in\mathcal{A}_{NS}}R(a_{NS})-\sum_{l_S\in\mathcal{L}_{NS}}R(l_S)-\sum_{l_{NS}\in\mathcal{L}_{NS}}R(l_{NS})
 \end{align}
-Here $A_S$ and $A_{NS}$ are the interest sensitive and non-sensitive assets, and $r_A$ is the interest rate of the assets. Similarly, $L_S$ and $L_{NS}$ are the interest sensitive and non-sensitive liabilities, with $r_L$ being the interest rate of liabilities.\\
+with $R$ symbolising the interest component of cashflows from the asset $a$ or liability $l$.\\
 
- The traditional approach of interest rate risk positioning of the balance sheet is based on gap models. Interest rate gap refers to the net asset position for a certain time period between interest-bearing assets and liabilities, which are repriced at the same time. The interest rate gap ($G$) equals:
+
+\textit{The \textit{cashflow.py} module contains a function \textit{nii\_table} that returns a table with the annual NII for each account name in the portfolio, as well as the totals. It additionally plots a bar plot for the data.} \\
+
+
+ The traditional approach of interest rate risk positioning of the balance sheet is based on \textbf{gap} models. \textbf{Interest rate gap} refers to the net asset position for a certain time period between interest-bearing assets and liabilities, which are repriced at the same time. The interest rate gap ($G$) equals:
 \begin{align}
-	G=A_S-L_S
+	G=\sum_{a_S\in\mathcal{A}_S}V(a_S)-\sum_{l_S\in\mathcal{L}_S}V(l_S)
+\end{align}
+where $V$ gives the volume of the interest sensitive assets or liabilities.We can categorize the assets and liabilities in the book that bear interest risk based on their month of repricing. This table is termed the \textbf{repricing gap table}. A bar plot representing this for the upcoming 12 months can be seen in Figure \ref{repricing_gap_table}.\begin{figure}[ht!]\label{repricing_gap_table}
+	\centering
+	\includegraphics[scale=0.4]{images/reprGapTable}	
+	\caption{Repricing gap table for the 12 upcoming months.}
+\end{figure}\\
+
+\textit{The cashflow.py module contains a function repricing\_gap\_table, which creates the repricing gap table, and optionally plots the values for a number of upcoming months.}
+\\
+
+\textbf{Interest earnings variation} can be characterized as the risk-bearing items multiplied by the change of interest rate $\Delta i$, shown as follows:
+\begin{align}
+	\Delta\text{NII}=G\cdot \Delta i
 \end{align}
 
+The sign of the gap is crucial from an interest rate risk point of view. A positive
+gap indicates increasing earnings when interest rates rise, and indicates decreasing earnings when interest rates decline. The repricing gap table can also capture the basis risk by aggregating the interest-bearing assets and liabilities based on their reference interest rate (that is 3 months or 6 months EURIBOR). Interest rate gap tables can be sufficient tools to determine the risk exposure from the earnings perspective. However, gap models cannot be used as a single risk measure to quantify rather the net interest income risk of the total balance sheet. Interest rate gaps are management tools, which provide guidance on interest rate risk positioning.\\
 
+We have to mention that there are more sophisticated tools for interest rate risk management. In practice, simulation models are applied for risk management purposes. However, the banking book risks are not explicitly subjected to capital charge under Pillar 1 of the Basel II regulations; Pillar 2 covers the interest rate
+risk in the banking book. Regulators lay particular emphasis also on the risk assessment regarding the market value of equity. Risk limits are based on specific stress scenarios, which could be either deterministic interest rate shocks or historical volatility-based earnings at risk concepts. Therefore, risk measurement techniques stand for scenario-based or stochastic simulation approaches, focusing on the interest earnings or the market value of equity. Net interest income simulation is rather a dynamic, forward-looking approach, while calculation of the market value of equity provides a static result. Equity duration is also a widely used measure for interest rate risk of the banking book. Duration of the assets and liabilities are calculated
+to quantify the duration of equity. ALM professionals often use effective duration, which incorporates embedded options (caps, floors, and so on) in the interest rate sensitivity calculation.
 
 
 
