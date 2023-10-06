@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
 
-import utils
+import timeutils
 from nelson_siegel_svensson.calibrate import calibrate_nss_ols
 
 
@@ -23,7 +23,7 @@ class YieldCurve:
         """ Fit Nelson-Siegel-Svensson model to the observed yields on the market """
         self._data = market_data[market_data['type'] == self.curve_type].copy()
         # Calculate time difference in years between now and expiry
-        self._data['maturity'] = self._data['date'].apply(lambda date: utils.time_difference(date, self._today, 'years'))
+        self._data['maturity'] = self._data['date'].apply(lambda date: timeutils.time_difference(date, self._today, 'years'))
         # Fit the Nelson-Siegel-Svensson model to our yield data
         self._curve, self._status = calibrate_nss_ols(np.ravel(self._data['maturity']), np.ravel(self._data['rate']))
 
@@ -33,7 +33,7 @@ class YieldCurve:
         
     def get_spot_yields(self, dates, plot=False):
         """ Gets the spot yield for dates based on Nelson-Siegel-Svensson model """
-        maturities = utils.time_difference_from_list(dates, self._today, 'years')
+        maturities = timeutils.time_difference_from_list(dates, self._today, 'years')
         yields = self._curve(maturities)
         if plot:
             self._plot_spot_yields(dates, yields)
@@ -45,8 +45,8 @@ class YieldCurve:
         if isinstance(times[0], datetime):
             times_type = 'dates'
             times_scale = ''
-            continuous_dates = utils.date_range(np.min(times), np.max(times), 100)
-            continuous_maturities = utils.time_difference_from_list(continuous_dates, self._today, 'years')
+            continuous_dates = timeutils.date_range(np.min(times), np.max(times), 100)
+            continuous_maturities = timeutils.time_difference_from_list(continuous_dates, self._today, 'years')
             continuous_times = continuous_dates
         elif isinstance(times[0], float):
             times_type = 'times'
@@ -70,7 +70,7 @@ class YieldCurve:
         
     def get_forward_yields(self, dates, plot=False):
         """ Gets forward yields """
-        maturities = utils.time_difference_from_list(dates, self._today, 'years')
+        maturities = timeutils.time_difference_from_list(dates, self._today, 'years')
         rates = self._curve(maturities)
         rates = np.divide(rates, 10000)
         interests = np.power(np.add(1, rates), maturities)
