@@ -127,7 +127,7 @@ More specifically, the portfolio contains the following data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Amortizing Loans}
+\section{Amortization Schedule}
 
 When a bank gives out a loan, the loan is expected to be payed back with interest. An \textbf{amortizing loan} is a type of loan in which the borrower makes regular, periodic payments that include both \textbf{principal} and \textbf{interest}. These payments are structured in a way that ensures the full repayment of the original loan amount (the principal) along with all accrued interest by the end of the loan term, or \textbf{maturity}. The process of spreading out the repayment of a loan over time is called \textbf{amortization}. The term "amortize" means to gradually reduce or pay off a debt over time.\\
 
@@ -329,7 +329,7 @@ Finally, for each payment date \(d_{\text{pay}}\in D_{\text{reprice}}\), we dete
 
 
 
-\section{Interest Rate Risk Measurement}
+\section{Interest Rate Risk}
 
 Interest rate risk is the potential for changes in interest rates to negatively impact the financial position of an institution, particularly those institutions that are involved in lending, borrowing, or holding fixed-income securities. Interest rate management focuses on the sensitivity of \textbf{net interest income (NII)}.  The net interest income equals the difference between interest revenues and interest expenses.\\
 
@@ -370,9 +370,39 @@ to quantify the duration of equity. ALM professionals often use effective durati
 
 
 
+\section{Liquidity Risk}
+
+Traditionally, liquidity risk is measured with two primary tools - static and dynamic liquidity gap tables. These tools help banks understand their liquidity position, i.e., their ability to meet short-term obligations with available cash or near-cash assets.\\
+
+ \textbf{Liquidity gap tables} essentially a representation of the bank's balance sheet, but instead of organizing assets and liabilities by type (e.g., loans, deposits), they are organized by when they are expected to result in cash \textbf{inflows} (expected incoming cash flows, like loan repayments from customers or interest payments) or \textbf{outflows} (expected outgoing cash flows, like withdrawals by depositors or maturing debt the bank needs to repay). This is done using "\textbf{maturity buckets}," which could be time periods like "less than 1 month," "1-3 months," "3-6 months," and so on. For each maturity bucket, the n\textbf{et cash-flow gap} is calculated by subtracting expected outflows from expected inflows. A positive gap indicates that the bank expects more inflows than outflows for that period, while a negative gap suggests potential liquidity shortfalls.\\
+ 
+As mentioned above, there are two approaches; the static and the dynamic. The \textbf{static} approach assumes a "rundown" balance sheet, meaning it only considers existing contracts and obligations without factoring in potential new business or the possibility of existing contracts being renewed. It's a snapshot based on current conditions.
+The \textbf{dynamic} is a more comprehensive approach. It considers not just the current balance sheet but also potential future scenarios. For instance, a loan might be rolled over (renewed), or the bank might acquire new deposits or make new loans. This view tries to account for these possibilities, making it more complex but also more realistic.
+For simplicity, in what follows, we adopt the static view.
 
 
 
+
+\section{Non-maturity deposits}
+
+The importance of \textbf{non-maturity deposits (NMD)} in banking is substantially high as the large part of commercial banks' balance sheets consist of client products with non-contractual cash-flow features. Non-maturity deposits are special financial instruments as the bank has an option to change the paid interest on the deposit account at any time, and the client has the option to withdraw any amount from the account without a period of notice. The liquidity and interest rate risk management of these products are a crucial part of ALM analysis; therefore, modeling of non-maturity deposits needs special attention. The uncertain maturity and interest rate profile generates a high level of complexity in their hedging, internal transfer pricing, and risk modeling.
+\\
+
+In the following analysis, we use Austrian non-maturity deposit time series data that we queried from the ECB Statistical Database, which is publicly available. We have monthly deposit interest rates (cpn), end-of-month balances (bal), and the 1 month EURIBOR fixing (eur1m) in our dataset.
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[scale=0.6]{images/cpn_erb}
+	\caption{Deposit coupon and 1 month EURIBOR fixing with time.}	
+\end{figure}
+
+We aim to investigate the relationship between two time series: the 1-month EURIBOR fixing and deposit interest rates. Specifically, we want to understand the long-term influence of the 1-month EURIBOR rate on non-maturity deposit interest rates. The concept of the 'pass-through effect' describes how fluctuations in the EURIBOR influence deposit interest rates. If there's a full pass-through, then a change of $\delta$ in the EURIBOR would lead to an equivalent $\delta$ change in deposit rates. Given its significance in assessing market dynamics, regulators, including the ECB, have emphasized understanding this effect. The ECB has even mandated that banks in the euro-zone gauge this pass-through effect under certain stress-testing conditions.
+
+
+
+
+We use the Engle-Granger two-step method to estimate the ECM model. In the first step, we estimate the cointegrating vector with a regression model. We take the residuals, and in the second step, we estimate the long-term and short-term effects of EURIBOR on deposit rates using the error-correction mechanism. Before the first step, we have to test whether both time series are integrated in the same order. Therefore, we run Augmented Dickey-Fuller (ADF) and the KPSS tests
+
+\subsubsection{}
 
 
 
