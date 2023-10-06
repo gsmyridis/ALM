@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
-import utils
+import timeutils
 from yieldcurve import YieldCurve
 
 
@@ -49,7 +49,7 @@ def asset_cashflow(portfolio, market, id, today):
     """ Gets cashflow for asset in portfolio with id, given the market """
     # CALCULATE PAYMENT PERIODS
     maturity_date = portfolio['maturity'][id].to_pydatetime()
-    payment_periods = utils.date_range(start=maturity_date, end=today, step=1)
+    payment_periods = timeutils.date_range(start=maturity_date, end=today, step=1)
     payment_periods = [date for date in payment_periods if date > today]
     # DETERMINE PAYMENT FREQUENCY
     payment_freq = portfolio['payment_freq'][id]
@@ -64,7 +64,7 @@ def asset_cashflow(portfolio, market, id, today):
     else:
         # CALCULATE REPRICING PERIODS
         issue_date = portfolio['issue'][id].to_pydatetime()
-        reprice_periods = utils.date_range(start=issue_date, end=maturity_date, step=1)
+        reprice_periods = timeutils.date_range(start=issue_date, end=maturity_date, step=1)
         # DETERMINE REPRICING FREQUENCY
         reprice_freq = portfolio['reprice_freq'][id]
         # SELECT REPRICING DATES
@@ -118,7 +118,7 @@ def get_present_values(cashflows, market, today):
     yieldcurve.fit(market)
     spot_yields = yieldcurve.get_spot_yields(payment_dates)['rate']
     # CALCULATE TIME FROM TODAY TO PAYMENT IN YEARS
-    dt = utils.time_difference_from_list(payment_dates, today, 'years')
+    dt = timeutils.time_difference_from_list(payment_dates, today, 'years')
     # DISCOUNT THE CASHFLOW ON GIVEN DATE TO FIND ITS PRESENT VALUE
     df = (1 + spot_yields/10000)**(-dt)
     table['present_values'] = table['cashflow'] * df
@@ -183,7 +183,7 @@ def repricing_gap(portfolio, id, today, months_forward=12):
         raise ValueError("months_forward must be an integer")
     # DETERMINE PAYMENT DATES
     maturity_date = portfolio.at[id, 'maturity'].to_pydatetime()
-    payment_periods = utils.date_range(start=maturity_date, end=today, step=1)
+    payment_periods = timeutils.date_range(start=maturity_date, end=today, step=1)
     payment_freq = portfolio.at[id, 'payment_freq']
     payment_dates = payment_periods[::payment_freq]
     
@@ -193,7 +193,7 @@ def repricing_gap(portfolio, id, today, months_forward=12):
     else:
         # DETERMINE REPRICING DATES
         issue_date = portfolio.at[id, 'issue'].to_pydatetime()
-        reprice_periods = utils.date_range(start=issue_date, end=maturity_date, step=1)
+        reprice_periods = timeutils.date_range(start=issue_date, end=maturity_date, step=1)
         reprice_freq = portfolio.at[id, 'reprice_freq']
         reprice_dates = pd.Series(reprice_periods[::reprice_freq])
         reprice_dates = reprice_dates[reprice_dates >= today]
@@ -201,7 +201,7 @@ def repricing_gap(portfolio, id, today, months_forward=12):
         if reprice_dates.empty:
             volume = np.zeros(months_forward)
         else:
-            reprice_days = utils.time_difference_from_list(reprice_dates, today, 'days')
+            reprice_days = timeutils.time_difference_from_list(reprice_dates, today, 'days')
             # DETERMINE THE VOLUME FOR EACH MONTH
             idx = np.digitize(reprice_days, np.arange(months_forward+1) * 30)
             volume = (np.bincount(idx[idx<=months_forward], 
