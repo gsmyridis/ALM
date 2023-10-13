@@ -68,3 +68,20 @@ def load_non_maturity_deposits(plot=False):
 
         ax.set_title('Deposit coupon vs 1-month Euribor')
     return data
+
+
+def load_yields(plot=False):
+    """  """
+    data = pd.read_csv('data/ecb_yc_data.csv')
+    data['date'] = pd.to_datetime(data['date'], format='%d/%m/%Y')
+
+    if plot:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(data['date'], data['EUR10Y'], label='eur1m')
+        for col in data.columns.drop('date'):
+            ax.plot(data['date'], data[col], label=col)
+        ax.legend()
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Yield')
+        ax.set_title('ECB Yield Curve')
+    return data
