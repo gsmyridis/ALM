@@ -42,11 +42,6 @@ def load_market():
     return market
 
 
-def load_data():
-    """ Loads the portfolio and market data """
-    return load_portfolio(), load_market()
-
-
 def load_non_maturity_deposits(plot=False):
     """
       Loads Austrian non-maturity deposits data 
@@ -71,7 +66,13 @@ def load_non_maturity_deposits(plot=False):
 
 
 def load_yields(plot=False):
-    """  """
+    """ 
+    Loads the zero-coupon instruments yields in the market
+    Specifically, the 1-month and 3-month EUR money market placements
+    and 1-year, 5-year, and 10-year government bonds
+
+    
+    """
     data = pd.read_csv('data/ecb_yc_data.csv')
     data['date'] = pd.to_datetime(data['date'], format='%d/%m/%Y')
 

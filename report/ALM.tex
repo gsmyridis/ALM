@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[11pt]{report}
 \usepackage{amsmath, amsfonts}
 \usepackage{graphicx}
 \graphicspath{images/}
@@ -7,104 +7,35 @@
 \begin{document}
 
 
-%\chapter{Asset Liability Management (ALM)}
-%\section{}
-%
-%This chapter introduces the usage of R for commercial bank \textbf{asset and liability management (ALM)} purposes. The ALM function in a bank is traditionally associated with interest rate risk and liquidity risk management of banking book positions. Both of the interest rate positioning and liquidity risk management require the modeling of banking products. Nowadays, professional ALM units use complex \textbf{Enterprise Risk Management (ERM)} frameworks, which are able to incorporate the management of all risk types and provide an adequate tool for ALM to steer the balance sheet. Our general objective is to set up a simplified framework of ALM to illustrate the use of R for certain ALM tasks. These tasks are based on the interest rate and liquidity risk management and the modeling of non-maturing accounts.
-%
-%
-%This chapter is structured as follows. We start with the data-preparation process of
-%ALM analysis. The process of planning and measurement needs special information
-%about the banking book, market conditions, and the business strategy. This part
-%establishes a data-management tool that consists of the major input datasets, and
-%extracts data into the form that we use in the rest of this chapter.
-%
-%
-%Next, we will be dealing with the measurement of the interest rate risk. There are
-%two common approaches in the banking industry to quantify interest rate risk in
-%the banking book. Simpler techniques use repricing gap table analysis to manage
-%the interest rate risk exposure and calculate parallel yield curve shocks to forecast
-%the net \textbf{interest income (NII) }and calculate the \textbf{market value of equity (MVoE)}.
-%More advanced methods use dynamic simulation of balance sheets and stochastic
-%simulation of interest rate development. Choosing which tool to use depends on the
-%targets and the balance sheet structure. 
-%
-%
-%For example, a savings bank (with client term deposits on the liability side and fix
-%bond investments on the asset side) focuses on its market value of equity risk, while
-%a corporate bank (with floating interest position) concentrates on the net interest
-%income risk. We illustrate how to efficiently provide a repricing gap table and net
-%interest income forecasts with Python.
-%
-%In the last section of this chapter, we will concentrate on the modeling of non-maturing
-%products. Client products can be classified by their maturity structure and interest
-%rate behavior. Examples of typical non-maturing liability products are on-demand
-%deposits and savings accounts without any notice period of withdrawal. The clients
-%can withdraw their money at any time, while the bank has the right to modify the
-%offered interest rate. On the asset side, overdrafts and credit cards show quite similar
-%characteristics. The complex models of non-maturing products make the work of ALM
-%quite challenging. Practically, the modeling of non-maturing products means
-%the mapping of the cash-flow profiles, estimating the interest rate elasticity of the
-%demand, and analyzing the liquidity-related costs in the internal funds transfer
-%pricing (FTP) system. Here, we demonstrate how to measure the interest sensitivity
-%of the non-maturing deposits.
 
+\chapter{Introduction}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\textbf{Asset and Liability Management (ALM)} is a central approach adopted by banks to navigate risks emerging from imbalances between assets and liabilities. Such imbalances may be triggered by variations in liquidity and interest rates. At its core, ALM is focused on managing the interest rate risk associated with long-term, non-tradable assets and liabilities. ALM primarily orbits around a bank's earnings and value, particularly when assessing interest rate risk within the banking book.\\
 
+The phrase \textbf{"interest rate risk in the banking book" (IRRBB)} suggests a bank's fiscal stance is susceptible to market interest rate fluctuations. There are two dominant perspectives in evaluating IRRBB: earnings and economic value. From the \textbf{earnings perspective}, the spotlight is on the repercussions of interest rate variations on a bank's net interest or accumulated income over extended durations, usually expressed as \textbf{Net Interest Income (NII)}. On the other hand, the economic value angle delves into the impact of interest rate alterations on the valuation of an entity's assets, liabilities, and off-balance sheet entities, typically gauged as the Ec\textbf{onomic Value of Equity (EVE)}. Though these viewpoints stem from distinct paradigms and yield different results, they are mutually reinforcing. The earnings perspective offers a glimpse into short-term outcomes, while the economic value perspective illuminates the long-term consequences. Consequently, for the sake of uniformity, regulators compel banks to disclose data from both angles.\\
 
-%TODO Introduction'
-%TODO Data description'
-%TODO Loans'
-%TODO Yield curve'
-%TODO Cashflows'
-%TODO Interest rate risk measurement'
+The structure of this report is as follows. In Chapter 2, we delve into the datasets in use. Chapter 3 is dedicated to laying the foundational groundwork. Here, we demystify terms like Euribor, the essence and role of Bonds, the nuances of amortization schedules, and the intricacies of yield curves. This chapter readies readers for the ensuing segments. The narrative then transitions to Chapter 4, the keystone of this report, addressing interest rate risk, liquidity risk, and the modeling of non-maturity deposits.\\
 
+In terms of quantifying interest rate risk, the banking realm predominantly resorts to two methodologies. Basic strategies rely on repricing gap table analyses to oversee risk and estimate net interest income (NII) and market value of equity (MVoE) based on uniform yield curve perturbations. Conversely, sophisticated tactics employ dynamic simulations of balance sheets and stochastic forecasts of interest rate trajectories. The selection of the approach hinges on the bank's objectives and the composition of its balance sheet. For instance, a savings bank may zero in on its market value of equity risk, whereas a corporate bank might prioritize net interest income risk.\\
 
+Liquidity risk also constitutes a significant facet of ALM. It can be segmented into three chief categories: structural, funding, and contingency risks. Structural risks are birthed from mismatches in contractual tenures between assets and liabilities. Notably, as commercial banks frequently funnel short-term client deposits into prolonged loans, they grapple with roll-over hazards, imperiling their financial stability. Funding liquidity risks surface during these roll-overs, echoing the unpredictability of renewal expenses. Contingency risks, in contrast, are tied to unpredictable client actions, such as unanticipated withdrawals or premature loan settlements. While ALM adeptly maneuvers through structural and funding risks, contingency risks mandate a reservoir of liquid assets.\\
 
+Lastly, non-maturity products, characterized by entities like on-demand deposits or overdrafts, present distinct challenges owing to their fluctuating maturity and interest rate dynamics. For ALM to be effective, a thorough modeling of these products is indispensable.
 
-\section{Introduction}
-
-
-\subsection{Background}
-
-Asset and Liability Management (ALM) is a mechanism to address the risks faced by a
-bank that arise as a result of a mismatch between assets and liabilities due to liquidity and changes in interest rates. One of the central issues of ALM is to manage interest rate risk associated with long-term and non tradable assets and liabilities. ALM focuses on bank’s earnings and value which aim to measure the interest rate risk in the banking book.
-
-
-The phrase ’interest rate risk in the banking book’ (IRRBB) implies that the bank’s position and its financial situation are sensitive to fluctuations in market interest rates.\\
-
-
-Currently, regulators are considering standardizing the management of IRRBB to a certain extent. An example of a step taken in this direction are the reporting standards
-to IRRBB proposed by Basel Committee on Banking Supervision (BCBS) which were
-issued in April 2016 with the title: ”Standards on Interest Rate Risk in the Banking
-Book”. The new reporting standards propose two perspectives on evaluating IRRBB:
-earnings and economic value. The earnings perspective focuses on the impact of interest rate movements on the net interest or accrued income of a bank over a time
-horizon of several years. This perspective is measured in terms of Net Interest Income
-(NII). The economic value perspective focuses on the impact of changes in interest rate
-movements on the value of an institution’s asset, liabilities and off-balance sheet items.\\
-
-
-This perspective is measured in terms of Economic Value of Equity (EVE) (BCBS,
-2016). These two perspectives are based on different concepts, yield different results
-and employ different interest rate risk strategies.
-The earnings perspective captures the short-term effect of interest rate changes, whereas
-the economic value perspective captures the long-term effect of interest rate changes.
-Therefore, the two perspectives are considered complementary. As such, regulators
-require banks to disclose both metrics, in order to enable comparability. These two
-perspectives however follow different procedures and lead to different outcomes. Nevertheless, these two perspectives cannot be considered separately either. A pure focus on one could lead to destabilization of the alternative resulting in a trade-off.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Data Description}
+\chapter{Data Description}\label{data_description}
 
-For the interest rate risk modelling part, we use two datasets from $2014-09-30$, namely the bank's portfolio and the market for zero-coupon bonds with different maturities.\\
 
-More specifically, the portfolio contains the following data. 
+For modelling interest rate risk, and liquidity risk, we use two datasets from $2014-09-30$, namely the Bank's Portfolio Data and the Market Data describing the rates of zero-coupon bonds with different maturities. The datasets Non-Maturity Deposits Data and Yields Data are used for modelling the non-maturity deposits.\\
+
+\textit{There is a module dataloader.py which contains functions that load the data that are described below with the appropriate format, and optionally plot them.}
+
+\section{Bank's Portfolio}
 \begin{itemize}
 	\item \textit{id:} identification number (index of the row)
 	\item \textit{account:} account type in short (e.g. mmp\_1)
@@ -113,19 +44,72 @@ More specifically, the portfolio contains the following data.
 	\item \textit{ir\_binding:} type of the interest rate. FIX for fixed rates, and LIBOR for variable rates with the variable benchmark LIBOR
 	\item \textit{reprice\_freq:} repricing frequency (of the rates) in months if the interest binding is LIBOR
 	\item \textit{spread:} the spread component of the interest rate in basis points (1 basis point $0.01\%$). The other component is the market's interest rates. $$(\text{Interest rate}) = (\text{Market's interest rate})+(\text{spread})$$
-	\item 
+	\item \textit{issue}: issue date (first repricing date)
+	\item \textit{maturity}: maturity date (last payment date)
+	\item \textit{repayment}: repayment structure (e.g. BULLET, LINEAR, ANNUITY)
+	\item \textit{payment\_freq}: repayment frequency in number of months
+	\item \textit{yieldcurve}: identifier of the interest rate curve
 \end{itemize}
 
-    
-%    - Cash-flow structure of the products
-%    :col issue: issue date (this is the first repricing day)
-%    :col maturity: maturity date
-%    :col repayment: type of principal repayment structure (bullet, linear, or annuity)
-%    :col payment_freq: repayment frequency in number of months
-%    :col yieldcurve: identifier of the interest rate curve
+
+\section{Market Data}
+
+\begin{itemize}
+	\item \textit{type}: yield curve type (for example, yields are from the bond market or the interbank market) the type column has to be the same as in portfolio to connect the two datasets
+	\item \textit{date}: maturity date of the current rate
+	\item \textit{rate}: value of the rate in basis points
+	\item \textit{comment}: label of the yield curve tensor
+\end{itemize}
+
+\section{Non-Maturity Deposits Data}
+
+
+\begin{itemize}
+	\item \textit{date}: date of the observation
+	\item \textit{eur1m}: 1-month Euribor rate in \%
+	\item \textit{cpn}: deposit coupon rate in \%
+	\item \textit{bal}: end-of-month balance of non-maturity deposit account
+\end{itemize}
+
+
+\section{Yields Data}
+
+\begin{itemize}
+	\item \textit{EUR10Y}: 10--year zero-coupon bond rate in \%
+	\item \textit{EUR5Y}: 5--year zero-coupon bond rate in \%
+	\item \textit{EUR1Y}: 1--year zero-coupon bond rate in \%
+	\item \textit{EUR3M}: 3--month Euribor rate in \%
+	\item \textit{EUR1M}: 1--month Euribor rate in \%
+\end{itemize}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Preliminary Knowledge}
+
+\section{Euribor Benchmark Rate}
+
+As highlighted earlier, it's a standard procedure to set the variable rates of a product by adding a spread to a fluctuating benchmark rate, often the Euribor.\\
+
+The Eurozone's wholesale money market is where financial institutions, including banks, engage in lending and borrowing substantial amounts. Typically, these transactions don't require collateral, and the borrowed funds have short durations, from overnight to a maximum of one year.\\
+
+Euribor, which stands for Euro Interbank Offered Rate, signifies the average interest rate at which banks in the Eurozone are willing to offer unsecured loans to their counterparts in this wholesale money market. These Euribor rates vary in terms of their duration, from a week up to a year, and are updated daily. Each rate corresponds to a specific loan tenure.
+
+
+\section{Bonds}
+
+In our analysis, we'll frequently discuss bonds, so it's essential to touch upon the topic briefly.\\
+
+A \textbf{bond} is a financial instrument representing a debt obligation. When an entity, such as a corporation or government, needs to raise capital, it can issue bonds to investors. By purchasing a bond, an investor is essentially lending money to the issuer in exchange for periodic interest payments and the return of the bond's face value at maturity. The value of a bond is the present value of its expected future cash flows. In mathematical terms
+\begin{align}
+	P=\sum_{t=1}^N\frac{C_t}{(1+y_t)^t}+\frac{F}{(1+y_N)^N}
+\end{align}
+where $F$ is the bond's face value and $C_t$ is the coupon payment at time $t$. Additionally, $y_t$ is the (expected) spot yield at time $t$, and $N$ is the total number of payment periods till maturity.
+
+
+
 
 \section{Amortization Schedule}
 
@@ -133,12 +117,12 @@ When a bank gives out a loan, the loan is expected to be payed back with interes
 
 The \textbf{amortization schedule} is a table or spreadsheet that outlines the details of each payment, including the amount allocated to principal and interest for each period. It also shows the remaining balance after each payment. This schedule provides borrowers with a clear understanding of how their loan will be paid off and helps them budget for future payments. On the other side, for the banks the amortization schedule is useful for the calculations of future cashflows for risk management.
 
-\subsection{Loan Payment Structure}
+\subsection{Payment Structure}
 
 In this section we describe three basic and frequent loan payment structures, namely, the linear, the annuity and finally the bullet. The names describe the distribution of principal payments (repayment of the original loan volume). For example, for the linear loan payment, every month we pay fixed amount on the principal value. 
 
 
-\subsubsection{Bullet Loan Payment Structure}
+\subsubsection{Bullet Payment Structure}
 
 A bullet loan, also known as a bullet payment loan or balloon payment loan, is a type of loan structure in which the borrower makes regular interest payments throughout the loan term but repays the entire principal (the original loan amount) in a single lump-sum payment at the end of the loan term.\\
 
@@ -240,7 +224,7 @@ with $N_i$ being the number of payment periods remaining to maturity. The paymen
 		\hline
 	\end{tabular}
 	\caption{Example of amortization schedule for a linear loan with principal volume $7500$, monthly rate $0.01$ and maturity 3 months after issuance.}
-\end{figure}
+\end{figure}\\
 
 \textit{The cashflow.py module includes a function named amortization\_schedule. This function provides the amortization schedule for an asset or liability, offering repayment structures such as bullet, linear, or annuity, as demonstrated in prior examples.}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -298,10 +282,13 @@ From which, the forward yield \(f_{t,s}\) can be isolated as:
 f_{t,s} = \left[ \frac{(1 + Y_{t+s})^{t+s}}{(1 + Y_t)^t} \right]^{1/s} - 1
 \label{forward_rates}
 \end{equation}
+\\
 
-
-\textit{The yieldcurve.py module includes a YieldCurve class that is fits the Nelson-Siegei-Svensson model to market data, and subsequently can provide spot rates and forward rates for provided dates and time periods. Additionally, given repricing dates, it can return the floating rates for certain payment dates.
+\textit{The yieldcurve.py module includes a YieldCurve class that fits the Nelson-Siegei-Svensson model to market data, and subsequently can provide spot rates and forward rates for provided dates and time periods. Additionally, given repricing dates, it can return the floating rates for certain payment dates.
 }
+
+
+\chapter{Risk Measurements}
 
 \section{Portfolio Cashflows}
 
@@ -340,7 +327,7 @@ Assume $\mathcal{A}_S$ and $\mathcal{A}_{NS}$ be the sets of interest sensitive 
 with $R$ symbolising the interest component of cashflows from the asset $a$ or liability $l$.\\
 
 
-\textit{The \textit{cashflow.py} module contains a function \textit{nii\_table} that returns a table with the annual NII for each account name in the portfolio, as well as the totals. It additionally plots a bar plot for the data.} \\
+\textit{The \textit{interest.py} module contains a function \textit{nii\_table} that returns a table with the annual NII for each account name in the portfolio, as well as the totals. It additionally plots a bar plot for the data.} \\
 
 
  The traditional approach of interest rate risk positioning of the balance sheet is based on \textbf{gap} models. \textbf{Interest rate gap} refers to the net asset position for a certain time period between interest-bearing assets and liabilities, which are repriced at the same time. The interest rate gap ($G$) equals:
@@ -353,7 +340,7 @@ where $V$ gives the volume of the interest sensitive assets or liabilities.We ca
 	\caption{Repricing gap table for the 12 upcoming months.}
 \end{figure}\\
 
-\textit{The cashflow.py module contains a function repricing\_gap\_table, which creates the repricing gap table, and optionally plots the values for a number of upcoming months.}
+\textit{The interest.py module contains a function repricing\_gap\_table, which creates the repricing gap table, and optionally plots the values for a number of upcoming months.}
 \\
 
 \textbf{Interest earnings variation} can be characterized as the risk-bearing items multiplied by the change of interest rate $\Delta i$, shown as follows:
@@ -383,28 +370,28 @@ For simplicity, in what follows, we adopt the static view.
 
 
 
-\section{Non-maturity deposits}
-
-The importance of \textbf{non-maturity deposits (NMD)} in banking is substantially high as the large part of commercial banks' balance sheets consist of client products with non-contractual cash-flow features. Non-maturity deposits are special financial instruments as the bank has an option to change the paid interest on the deposit account at any time, and the client has the option to withdraw any amount from the account without a period of notice. The liquidity and interest rate risk management of these products are a crucial part of ALM analysis; therefore, modeling of non-maturity deposits needs special attention. The uncertain maturity and interest rate profile generates a high level of complexity in their hedging, internal transfer pricing, and risk modeling.
-\\
-
-In the following analysis, we use Austrian non-maturity deposit time series data that we queried from the ECB Statistical Database, which is publicly available. We have monthly deposit interest rates (cpn), end-of-month balances (bal), and the 1 month EURIBOR fixing (eur1m) in our dataset.
-\begin{figure}[ht!]
-	\centering
-	\includegraphics[scale=0.6]{images/cpn_erb}
-	\caption{Deposit coupon and 1 month EURIBOR fixing with time.}	
-\end{figure}
-
-\subsection{Relationship between 1-month EURIBOR and Deposit Interest Rates}
-
-We aim to investigate the relationship between two time series: the 1-month EURIBOR fixing and deposit interest rates. Specifically, we want to understand the long-term influence of the 1-month EURIBOR rate on non-maturity deposit interest rates. The concept of the 'pass-through effect' describes how fluctuations in the EURIBOR influence deposit interest rates. If there's a full pass-through, then a change of $\delta$ in the EURIBOR would lead to an equivalent $\delta$ change in deposit rates. Given its significance in assessing market dynamics, regulators, including the ECB, have emphasized understanding this effect. The ECB has even mandated that banks in the euro-zone gauge this pass-through effect under certain stress-testing conditions.
-
-
-
-
-We use the Engle-Granger two-step method to estimate the ECM model. In the first step, we estimate the cointegrating vector with a regression model. We take the residuals, and in the second step, we estimate the long-term and short-term effects of EURIBOR on deposit rates using the error-correction mechanism. Before the first step, we have to test whether both time series are integrated in the same order. Therefore, we run Augmented Dickey-Fuller (ADF) and the KPSS tests
-
-\subsubsection{}
+%\section{Modelling Non-maturity deposits}
+%
+%The importance of \textbf{non-maturity deposits (NMD)} in banking is substantially high as the large part of commercial banks' balance sheets consist of client products with non-contractual cash-flow features. Non-maturity deposits are special financial instruments as the bank has an option to change the paid interest on the deposit account at any time, and the client has the option to withdraw any amount from the account without a period of notice. The liquidity and interest rate risk management of these products are a crucial part of ALM analysis; therefore, modeling of non-maturity deposits needs special attention. The uncertain maturity and interest rate profile generates a high level of complexity in their hedging, internal transfer pricing, and risk modeling.
+%\\
+%
+%In the following analysis, we use Austrian non-maturity deposit time series data that we queried from the ECB Statistical Database, which is publicly available. We have monthly deposit interest rates (cpn), end-of-month balances (bal), and the 1 month EURIBOR fixing (eur1m) in our dataset.
+%\begin{figure}[ht!]
+%	\centering
+%	\includegraphics[scale=0.6]{images/cpn_erb}
+%	\caption{Deposit coupon and 1 month EURIBOR fixing with time.}	
+%\end{figure}
+%
+%\subsection{Relationship between 1-month EURIBOR and Deposit Interest Rates}
+%
+%We aim to investigate the relationship between two time series: the 1-month EURIBOR fixing and deposit interest rates. Specifically, we want to understand the long-term influence of the 1-month EURIBOR rate on non-maturity deposit interest rates. The concept of the 'pass-through effect' describes how fluctuations in the EURIBOR influence deposit interest rates. If there's a full pass-through, then a change of $\delta$ in the EURIBOR would lead to an equivalent $\delta$ change in deposit rates. Given its significance in assessing market dynamics, regulators, including the ECB, have emphasized understanding this effect. The ECB has even mandated that banks in the euro-zone gauge this pass-through effect under certain stress-testing conditions.
+%
+%
+%
+%
+%We use the Engle-Granger two-step method to estimate the ECM model. In the first step, we estimate the cointegrating vector with a regression model. We take the residuals, and in the second step, we estimate the long-term and short-term effects of EURIBOR on deposit rates using the error-correction mechanism. Before the first step, we have to test whether both time series are integrated in the same order. Therefore, we run Augmented Dickey-Fuller (ADF) and the KPSS tests
+%
+%\subsubsection{}
 
 
 
